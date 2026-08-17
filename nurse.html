@@ -109,8 +109,8 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); fo
 
 <script>
 // ====== ตั้งค่า ======
-const LIFF_ID = "YOUR_NURSE_LIFF_ID";               // LIFF app แยกอีกตัวสำหรับหน้านี้ (คนละตัวกับหน้าผู้ป่วย)
-const GAS_WEB_APP_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL"; // URL เดียวกับที่ใช้ในหน้า LIFF ผู้ป่วย
+const LIFF_ID = "2011121393-snPTo1BO";               // LIFF app แยกอีกตัวสำหรับหน้านี้ (คนละตัวกับหน้าผู้ป่วย)
+const GAS_WEB_APP_URL = "https://liff.line.me/2011121393-V8xdJQ6r"; // URL เดียวกับที่ใช้ในหน้า LIFF ผู้ป่วย
 
 const MOCK_DATA = {
   summary: { totalPatients: 6, loggedToday: 4, overTargetToday: 2 },
@@ -129,7 +129,7 @@ async function init() {
     await liff.init({ liffId: LIFF_ID });
     if (!liff.isLoggedIn()) { liff.login(); return; }
     const idToken = liff.getIDToken();
-    if (!idToken || GAS_WEB_APP_URL === "YOUR_APPS_SCRIPT_WEB_APP_URL") throw new Error('not configured');
+    if (!idToken || GAS_WEB_APP_URL === "https://liff.line.me/2011121393-V8xdJQ6r") throw new Error('not configured');
 
     const res = await fetch(`${GAS_WEB_APP_URL}?action=nurseData&idToken=${encodeURIComponent(idToken)}`);
     const data = await res.json();
