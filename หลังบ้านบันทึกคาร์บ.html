@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>หลังบ้านพยาบาล</title>
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600&family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+:root {
+  --bg: #F5F4F0; --surface: #FFFFFF; --ink: #24302A; --ink-soft: #66716A;
+  --brand: #1B5E4C; --brand-light: #E3F1EA; --border: #E2E0D8;
+  --good: #4F8F52; --good-bg: #EAF4EA;
+  --warn: #C9821E; --warn-bg: #FCF3E2;
+  --over: #C2503F; --over-bg: #FBEAE7;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171C19; --surface: #212823; --ink: #EAEDE9; --ink-soft: #9AA39C;
+    --brand: #4E9C81; --brand-light: #223730; --border: #333B35;
+    --good-bg: #1F3021; --warn-bg: #3A2E14; --over-bg: #3A211D;
+  }
+}
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: 'Sarabun', sans-serif; -webkit-font-smoothing: antialiased; }
+.header { background: var(--brand); color: #fff; padding: 22px 20px calc(18px + env(safe-area-inset-top)); }
+.header-inner { max-width: 640px; margin: 0 auto; }
+.header h1 { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 21px; margin: 0 0 4px; }
+.header p { margin: 0; font-size: 13px; color: rgba(255,255,255,0.82); }
+
+.content { max-width: 640px; margin: 0 auto; padding: 20px; }
+.state-msg { text-align: center; color: var(--ink-soft); font-size: 13.5px; padding: 40px 20px; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+.card h2 { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 17px; margin: 0 0 6px; color: var(--brand); }
+.card .sub { font-size: 13px; color: var(--ink-soft); margin: 0 0 14px; line-height: 1.6; }
+.id-box { background: var(--brand-light); color: var(--brand); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; word-break: break-all; margin-bottom: 12px; }
+.id-box code { font-family: monospace; }
+.hint { font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; margin: 0; }
+
+.demo-banner { display: flex; align-items: center; gap: 8px; background: var(--warn-bg); color: var(--warn); border: 1px solid #EFCB86; border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.5; margin-bottom: 16px; }
+.demo-banner svg { flex-shrink: 0; }
+
+.summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
+.summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 10px; text-align: center; }
+.summary-card.alert { background: var(--over-bg); border-color: var(--over); }
+.summary-num { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 24px; color: var(--ink); }
+.summary-card.alert .summary-num { color: var(--over); }
+.summary-label { font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; }
+
+.section-title { font-family: 'Kanit', sans-serif; font-weight: 500; font-size: 15px; margin: 0 0 12px; }
+.patient-row { border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px; margin-bottom: 10px; cursor: pointer; }
+.patient-row:last-child { margin-bottom: 0; }
+.patient-row-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.patient-name { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 14px; }
+.patient-meta { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+.status-badge { font-size: 11px; padding: 4px 10px; border-radius: 999px; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+.status-badge.good { background: var(--good-bg); color: var(--good); }
+.status-badge.warn { background: var(--over-bg); color: var(--over); }
+.status-badge.none { background: var(--border); color: var(--ink-soft); }
+.patient-entries { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.patient-row.expanded .patient-entries { display: block; }
+.entry-row { display: flex; justify-content: space-between; font-size: 12.5px; padding: 4px 0; color: var(--ink-soft); }
+.entry-empty { font-size: 12.5px; color: var(--ink-soft); font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <h1>หลังบ้านพยาบาล</h1>
+    <p>ภาพรวมการบันทึกคาร์บของผู้ป่วยวันนี้</p>
+  </div>
+</div>
+
+<div class="content">
+
+  <div class="state-msg" id="loadingState">กำลังตรวจสอบสิทธิ์เข้าถึง...</div>
+
+  <div id="deniedState" style="display:none">
+    <div class="card">
+      <h2>ไม่มีสิทธิ์เข้าถึงหน้านี้</h2>
+      <p class="sub">LINE User ID ของบัญชีนี้ยังไม่อยู่ในรายชื่อพยาบาล</p>
+      <div class="id-box">User ID ของคุณ: <code id="yourUserId">-</code></div>
+      <p class="hint">ส่ง ID นี้ให้ผู้ดูแลระบบ นำไปเพิ่มเป็นแถวใหม่ในชีท "Nurses" (คอลัมน์ LINE User ID + ชื่อ) แล้วเปิดหน้านี้ใหม่อีกครั้ง</p>
+    </div>
+  </div>
+
+  <div id="dashboard" style="display:none">
+    <div class="demo-banner" id="demoBanner">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 1.5l7 12.5H1L8 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 6v3.5M8 11.5v.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <span>โหมดทดสอบ — ยังไม่เชื่อมกับ backend จริง กำลังแสดงข้อมูลสมมติ</span>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-card"><div class="summary-num" id="sumTotal">-</div><div class="summary-label">ผู้ป่วยทั้งหมด</div></div>
+      <div class="summary-card"><div class="summary-num" id="sumLogged">-</div><div class="summary-label">บันทึกวันนี้</div></div>
+      <div class="summary-card" id="overCard"><div class="summary-num" id="sumOver">-</div><div class="summary-label">เกินเป้าวันนี้</div></div>
+    </div>
+
+    <div class="card">
+      <p class="section-title">รายชื่อผู้ป่วย</p>
+      <div id="patientList"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ====== ตั้งค่า ======
+const LIFF_ID = "YOUR_NURSE_LIFF_ID";               // LIFF app แยกอีกตัวสำหรับหน้านี้ (คนละตัวกับหน้าผู้ป่วย)
+const GAS_WEB_APP_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL"; // URL เดียวกับที่ใช้ในหน้า LIFF ผู้ป่วย
+
+const MOCK_DATA = {
+  summary: { totalPatients: 6, loggedToday: 4, overTargetToday: 2 },
+  patients: [
+    { userId: 'demo1', name: 'สมชาย ใจดี', target: 200, todayCarbs: 235, entries: [{meal:'เช้า', food:'ข้าวสวย (1 ทัพพี)', carbs:20},{meal:'เที่ยง', food:'ก๋วยเตี๋ยว (1 ชาม)', carbs:45}] },
+    { userId: 'demo2', name: 'สมหญิง รักสุข', target: 180, todayCarbs: 90, entries: [{meal:'เช้า', food:'ขนมปังแผ่น (1 แผ่น)', carbs:13}] },
+    { userId: 'demo3', name: 'ประไพ แสงทอง', target: 220, todayCarbs: 0, entries: [] },
+    { userId: 'demo4', name: 'วิชัย ศรีสุข', target: 200, todayCarbs: 210, entries: [{meal:'เย็น', food:'ผัดไทย (1 จาน)', carbs:55}] },
+    { userId: 'demo5', name: 'มาลี บุญมาก', target: 190, todayCarbs: 150, entries: [{meal:'เที่ยง', food:'กล้วยน้ำว้า (1 ผล)', carbs:25}] },
+    { userId: 'demo6', name: 'สุรชัย ทองดี', target: 200, todayCarbs: 0, entries: [] }
+  ]
+};
+
+async function init() {
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    if (!liff.isLoggedIn()) { liff.login(); return; }
+    const idToken = liff.getIDToken();
+    if (!idToken || GAS_WEB_APP_URL === "YOUR_APPS_SCRIPT_WEB_APP_URL") throw new Error('not configured');
+
+    const res = await fetch(`${GAS_WEB_APP_URL}?action=nurseData&idToken=${encodeURIComponent(idToken)}`);
+    const data = await res.json();
+
+    if (!data.authorized) {
+      showDenied(data.yourUserId);
+      return;
+    }
+    showDashboard(data, false);
+  } catch (err) {
+    // ยังไม่ได้ตั้งค่า LIFF_ID/URL จริง หรือเปิดนอกบริบทที่ใช้ได้ — ใช้โหมดทดสอบแทน
+    showDashboard(MOCK_DATA, true);
+  }
+}
+
+function showDenied(yourUserId) {
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('deniedState').style.display = 'block';
+  document.getElementById('yourUserId').textContent = yourUserId || '(ไม่พบ — ลองล็อกอินใหม่)';
+}
+
+function showDashboard(data, isDemo) {
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('demoBanner').style.display = isDemo ? 'flex' : 'none';
+
+  document.getElementById('sumTotal').textContent = data.summary.totalPatients;
+  document.getElementById('sumLogged').textContent = data.summary.loggedToday;
+  document.getElementById('sumOver').textContent = data.summary.overTargetToday;
+  document.getElementById('overCard').classList.toggle('alert', data.summary.overTargetToday > 0);
+
+  const rank = p => (p.todayCarbs > p.target ? 0 : (p.todayCarbs > 0 ? 1 : 2));
+  const sorted = [...data.patients].sort((a, b) => rank(a) - rank(b) || (a.name || '').localeCompare(b.name || '', 'th'));
+
+  document.getElementById('patientList').innerHTML = sorted.map(p => {
+    const over = p.todayCarbs > p.target;
+    const logged = p.todayCarbs > 0;
+    const status = over ? 'warn' : (logged ? 'good' : 'none');
+    const label = over ? 'เกินเป้า' : (logged ? 'ปกติ' : 'ยังไม่บันทึก');
+    const entriesHtml = p.entries.length
+      ? p.entries.map(e => `<div class="entry-row"><span>${e.meal} · ${e.food}</span><span>${e.carbs} ก.</span></div>`).join('')
+      : '<div class="entry-empty">ยังไม่มีรายการล่าสุด</div>';
+    return `
+      <div class="patient-row" onclick="this.classList.toggle('expanded')">
+        <div class="patient-row-top">
+          <div>
+            <div class="patient-name">${p.name || 'ไม่ทราบชื่อ'}</div>
+            <div class="patient-meta">${p.todayCarbs}/${p.target} กรัมคาร์บวันนี้</div>
+          </div>
+          <span class="status-badge ${status}">${label}</span>
+        </div>
+        <div class="patient-entries">${entriesHtml}</div>
+      </div>`;
+  }).join('');
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
