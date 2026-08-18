@@ -129,7 +129,7 @@ async function init() {
     await liff.init({ liffId: LIFF_ID });
     if (!liff.isLoggedIn()) { liff.login(); return; }
     const idToken = liff.getIDToken();
-    if (!idToken || GAS_WEB_APP_URL === "https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpclxW8jOqIqbLbUrSiftt4hzyxr5dtvhKjIAyL-vx74AgO_UP-zEk4/exec") throw new Error('not configured');
+    if (!idToken || !GAS_WEB_APP_URL.startsWith('https://script.google.com/')) throw new Error('not configured');
 
     const res = await fetch(`${GAS_WEB_APP_URL}?action=nurseData&idToken=${encodeURIComponent(idToken)}`);
     const data = await res.json();
