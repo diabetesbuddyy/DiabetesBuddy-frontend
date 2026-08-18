@@ -110,7 +110,7 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); fo
 <script>
 // ====== ตั้งค่า ======
 const LIFF_ID = "2011121393-snPTo1BO";               // LIFF app แยกอีกตัวสำหรับหน้านี้ (คนละตัวกับหน้าผู้ป่วย)
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpclxW8jOqIqbLbUrSiftt4hzyxr5dtvhKjIAyL-vx74AgO_UP-zEk4/exec"; // URL เดียวกับที่ใช้ในหน้า LIFF ผู้ป่วย
+const GAS_WEB_APP_URL = "https://script.google.com/macros/library/d/1HIhtwErdGAP-2Vstjp5cFdPUcqH4ibZSCE7NulrCvfviRxhwHjhk8HjD/3"; // URL เดียวกับที่ใช้ในหน้า LIFF ผู้ป่วย
 
 const MOCK_DATA = {
   summary: { totalPatients: 6, loggedToday: 4, overTargetToday: 2 },
@@ -129,7 +129,7 @@ async function init() {
     await liff.init({ liffId: LIFF_ID });
     if (!liff.isLoggedIn()) { liff.login(); return; }
     const idToken = liff.getIDToken();
-    if (!idToken || GAS_WEB_APP_URL === "https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpclxW8jOqIqbLbUrSiftt4hzyxr5dtvhKjIAyL-vx74AgO_UP-zEk4/exec") throw new Error('not configured');
+    if (!idToken || GAS_WEB_APP_URL === "https://script.google.com/macros/library/d/1HIhtwErdGAP-2Vstjp5cFdPUcqH4ibZSCE7NulrCvfviRxhwHjhk8HjD/3") throw new Error('not configured');
 
     const res = await fetch(`${GAS_WEB_APP_URL}?action=nurseData&idToken=${encodeURIComponent(idToken)}`);
     const data = await res.json();
