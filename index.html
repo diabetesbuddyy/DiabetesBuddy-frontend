@@ -147,7 +147,7 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
 <script>
 // ====== ตั้งค่า — แก้ 2 ค่านี้หลังจากได้ LIFF ID และ Apps Script Web App URL จริง ======
 const LIFF_ID = "2011121393-V8xdJQ6r";                   // เช่น "1234567890-abcdefgh"
-const GAS_WEB_APP_URL = "https://script.google.com/macros/library/d/1HIhtwErdGAP-2Vstjp5cFdPUcqH4ibZSCE7NulrCvfviRxhwHjhk8HjD/3"; // ได้ตอน deploy Apps Script เป็น Web App
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpclxW8jOqIqbLbUrSiftt4hzyxr5dtvhKjIAyL-vx74AgO_UP-zEk4/exec"; // ได้ตอน deploy Apps Script เป็น Web App
 const DAILY_TARGET_G = 200; // เป้าหมายคาร์บ/วัน (ตัวอย่าง — ทีหลังควรดึงมาจาก Sheet ต่อผู้ป่วยแต่ละคน)
 
 // ====== ฐานข้อมูลอาหารตัวอย่าง — ค่าคาร์บเป็นค่าประมาณสำหรับทดสอบ UI เท่านั้น ======
@@ -276,7 +276,7 @@ function updateRing() {
 async function saveToday() {
   clearError();
   if (todayLog.length === 0) { showError('ยังไม่มีรายการให้บันทึก'); return; }
-  if (GAS_WEB_APP_URL === "https://script.google.com/macros/library/d/1HIhtwErdGAP-2Vstjp5cFdPUcqH4ibZSCE7NulrCvfviRxhwHjhk8HjD/3") {
+  if (GAS_WEB_APP_URL === "https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpclxW8jOqIqbLbUrSiftt4hzyxr5dtvhKjIAyL-vx74AgO_UP-zEk4/exec") {
     showError('ยังไม่ได้เชื่อม Apps Script backend (ขั้นตอนถัดไป) — ตอนนี้ข้อมูลจะยังไม่ถูกบันทึกจริง');
     return;
   }
