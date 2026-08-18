@@ -276,7 +276,7 @@ function updateRing() {
 async function saveToday() {
   clearError();
   if (todayLog.length === 0) { showError('ยังไม่มีรายการให้บันทึก'); return; }
-  if (GAS_WEB_APP_URL === "https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpclxW8jOqIqbLbUrSiftt4hzyxr5dtvhKjIAyL-vx74AgO_UP-zEk4/exec") {
+  if (GAS_WEB_APP_URL === "YOUR_APPS_SCRIPT_WEB_APP_URL") {
     showError('ยังไม่ได้เชื่อม Apps Script backend (ขั้นตอนถัดไป) — ตอนนี้ข้อมูลจะยังไม่ถูกบันทึกจริง');
     return;
   }
