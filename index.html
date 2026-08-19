@@ -284,19 +284,22 @@ async function saveToday() {
   btn.disabled = true;
   btn.textContent = 'กำลังบันทึก...';
   try {
-    await fetch(GAS_WEB_APP_URL, {
+    const res = await fetch(GAS_WEB_APP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ userId: profile.userId, displayName: profile.displayName, entries: todayLog }),
     });
+    const result = await res.json();
+    if (!result.ok) throw new Error(result.error || 'ไม่ทราบสาเหตุ');
     btn.textContent = 'บันทึกสำเร็จ';
     todayLog = [];
     renderLog();
     updateRing();
   } catch (err) {
-    btn.textContent = 'บันทึกไม่สำเร็จ ลองใหม่';
+    btn.textContent = 'บันทึกไม่สำเร็จ';
+    showError('บันทึกไม่สำเร็จ: ' + err.message);
   } finally {
-    setTimeout(() => { btn.disabled = false; btn.textContent = 'บันทึกข้อมูล'; }, 2000);
+    setTimeout(() => { btn.disabled = false; btn.textContent = 'บันทึกข้อมูล'; }, 2500);
   }
 }
 
