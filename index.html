@@ -123,6 +123,22 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
 @keyframes gentle-flash { 0%, 100% { background-color: var(--over-bg); } 50% { background-color: #F6C6C1; } }
 .flash-danger { animation: gentle-flash 1.4s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .flash-danger { animation: none; background-color: var(--over-bg); } }
+
+/* ---------- history charts ---------- */
+#glucoseChart svg, #carbChart svg { display: block; }
+.history-entry-list { list-style: none; padding: 0; margin: 0; }
+#printReport { display: none; }
+
+/* ---------- print report ---------- */
+@media print {
+  body * { visibility: hidden; }
+  #printReport, #printReport * { visibility: visible; }
+  #printReport { display: block !important; position: absolute; left: 0; top: 0; width: 100%; padding: 24px; }
+  #printReport table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 12px; }
+  #printReport th, #printReport td { border: 1px solid #999; padding: 5px 8px; text-align: left; }
+  #printReport h1 { font-family: 'Kanit', sans-serif; font-size: 18px; margin-bottom: 4px; }
+  #printReport h2 { font-family: 'Kanit', sans-serif; font-size: 14px; margin-top: 18px; margin-bottom: 6px; }
+}
 </style>
 </head>
 <body>
@@ -148,6 +164,9 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
     </button>
     <button type="button" role="tab" id="tab-insulin" aria-selected="false" aria-controls="panel-insulin" class="tab-btn" onclick="switchTab('insulin', this)">
       <span class="tab-icon" aria-hidden="true">💉</span>อินซูลิน
+    </button>
+    <button type="button" role="tab" id="tab-history" aria-selected="false" aria-controls="panel-history" class="tab-btn" onclick="switchTab('history', this)">
+      <span class="tab-icon" aria-hidden="true">📊</span>ประวัติ
     </button>
   </div>
 
@@ -287,6 +306,30 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
       </div>
     </div>
 
+    <!-- ===================== PANEL: HISTORY ===================== -->
+    <div role="tabpanel" id="panel-history" aria-labelledby="tab-history" tabindex="0" class="tab-panel" hidden>
+      <div class="card">
+        <p class="section-title">แนวโน้มน้ำตาลในเลือด</p>
+        <p class="sub">14 วันล่าสุด · เส้นประคือช่วงอ้างอิง 70 และ 180 mg/dL</p>
+        <div id="glucoseChart"></div>
+      </div>
+
+      <div class="card">
+        <p class="section-title">คาร์บรวมรายวัน</p>
+        <p class="sub">เส้นประคือเป้าหมายต่อวันของคุณ</p>
+        <div id="carbChart"></div>
+      </div>
+
+      <div class="card">
+        <p class="section-title">ประวัติอินซูลิน</p>
+        <ul class="history-entry-list" id="insulinHistoryList"></ul>
+      </div>
+
+      <button class="btn-primary" onclick="printReport()">พิมพ์รายงานไปพบแพทย์</button>
+
+      <div id="printReport"></div>
+    </div>
+
   </div>
 </div>
 
@@ -328,6 +371,9 @@ async function initLiff() {
 }
 
 // ====== แท็บ ======
+let historyLoaded = false;
+let historyData = null;
+
 function switchTab(id, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => { p.hidden = true; p.classList.remove('active'); });
   const panel = document.getElementById('panel-' + id);
@@ -336,6 +382,148 @@ function switchTab(id, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
   btn.classList.add('active');
   btn.setAttribute('aria-selected', 'true');
+
+  if (id === 'history' && !historyLoaded) {
+    historyLoaded = true;
+    loadHistory();
+  }
+}
+
+// ====== ระบบ 4: ประวัติ & กราฟ ======
+const MOCK_HISTORY = {
+  patient: { name: 'ผู้ป่วยทดสอบ', target: 200 },
+  glucose: [
+    { time: '2026-08-13T07:00:00', value: 130, level: 'normal' },
+    { time: '2026-08-14T07:30:00', value: 145, level: 'normal' },
+    { time: '2026-08-15T08:00:00', value: 165, level: 'high' },
+    { time: '2026-08-16T07:15:00', value: 125, level: 'normal' },
+    { time: '2026-08-17T19:00:00', value: 195, level: 'high' },
+  ],
+  carbDaily: [
+    { date: '2026-08-13', totalCarbs: 180 },
+    { date: '2026-08-14', totalCarbs: 210 },
+    { date: '2026-08-15', totalCarbs: 165 },
+    { date: '2026-08-16', totalCarbs: 195 },
+    { date: '2026-08-17', totalCarbs: 220 },
+  ],
+  insulin: [
+    { time: '2026-08-14T07:35:00', totalDose: 3 },
+    { time: '2026-08-15T08:05:00', totalDose: 5 },
+    { time: '2026-08-17T19:05:00', totalDose: 6 },
+  ],
+};
+
+async function loadHistory() {
+  try {
+    const idToken = liff.getIDToken && liff.getIDToken();
+    if (!idToken || !GAS_WEB_APP_URL.startsWith('https://script.google.com/')) throw new Error('not configured');
+    const res = await fetch(`${GAS_WEB_APP_URL}?action=myHistory&idToken=${encodeURIComponent(idToken)}`);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'load failed');
+    historyData = data;
+  } catch (err) {
+    historyData = MOCK_HISTORY;
+  }
+  renderGlucoseChart(historyData.glucose);
+  renderCarbChart(historyData.carbDaily, historyData.patient.target || DAILY_TARGET_G);
+  renderInsulinHistory(historyData.insulin);
+}
+
+function renderGlucoseChart(data) {
+  const container = document.getElementById('glucoseChart');
+  if (!data || !data.length) { container.innerHTML = '<p class="result-placeholder">ยังไม่มีข้อมูลค่าน้ำตาลในช่วงนี้</p>'; return; }
+
+  const w = 320, h = 150, padL = 30, padR = 10, padT = 10, padB = 10;
+  const values = data.map(d => d.value);
+  const minV = Math.min(60, ...values) - 10;
+  const maxV = Math.max(220, ...values) + 10;
+  const xPos = i => padL + (data.length > 1 ? (i / (data.length - 1)) * (w - padL - padR) : (w - padL - padR) / 2);
+  const yPos = v => padT + (1 - (v - minV) / (maxV - minV)) * (h - padT - padB);
+
+  const points = data.map((d, i) => `${xPos(i)},${yPos(d.value)}`).join(' ');
+  const dots = data.map((d, i) => {
+    const color = d.level === 'danger' ? 'var(--over)' : (d.level === 'high' || d.level === 'very-high') ? 'var(--warn)' : 'var(--good)';
+    return `<circle cx="${xPos(i)}" cy="${yPos(d.value)}" r="3.5" style="fill:${color}" />`;
+  }).join('');
+
+  container.innerHTML = `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;">
+    <line x1="${padL}" y1="${yPos(70)}" x2="${w - padR}" y2="${yPos(70)}" style="stroke:var(--border)" stroke-width="1" stroke-dasharray="3,3" />
+    <line x1="${padL}" y1="${yPos(180)}" x2="${w - padR}" y2="${yPos(180)}" style="stroke:var(--border)" stroke-width="1" stroke-dasharray="3,3" />
+    <text x="${padL - 4}" y="${yPos(70) + 3}" font-size="9" style="fill:var(--ink-soft)" text-anchor="end">70</text>
+    <text x="${padL - 4}" y="${yPos(180) + 3}" font-size="9" style="fill:var(--ink-soft)" text-anchor="end">180</text>
+    <polyline points="${points}" fill="none" style="stroke:var(--brand)" stroke-width="1.5" />
+    ${dots}
+  </svg>`;
+}
+
+function renderCarbChart(data, target) {
+  const container = document.getElementById('carbChart');
+  if (!data || !data.length) { container.innerHTML = '<p class="result-placeholder">ยังไม่มีข้อมูลคาร์บในช่วงนี้</p>'; return; }
+
+  const w = 320, h = 150, padL = 8, padR = 8, padT = 10, padB = 22;
+  const maxV = Math.max(target, ...data.map(d => d.totalCarbs)) * 1.15;
+  const gap = (w - padL - padR) / data.length;
+  const barW = gap * 0.6;
+
+  const bars = data.map((d, i) => {
+    const bh = (d.totalCarbs / maxV) * (h - padT - padB);
+    const bx = padL + i * gap + (gap - barW) / 2;
+    const by = h - padB - bh;
+    const color = d.totalCarbs > target ? 'var(--over)' : 'var(--good)';
+    const dateLabel = (d.date || '').slice(5);
+    return `<rect x="${bx}" y="${by}" width="${barW}" height="${Math.max(bh,1)}" rx="2" style="fill:${color}" />
+      <text x="${bx + barW / 2}" y="${h - padB + 12}" font-size="8" style="fill:var(--ink-soft)" text-anchor="middle">${dateLabel}</text>`;
+  }).join('');
+
+  const targetY = h - padB - (target / maxV) * (h - padT - padB);
+
+  container.innerHTML = `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;">
+    <line x1="${padL}" y1="${targetY}" x2="${w - padR}" y2="${targetY}" style="stroke:var(--brand)" stroke-width="1" stroke-dasharray="3,3" />
+    ${bars}
+  </svg>`;
+}
+
+function renderInsulinHistory(data) {
+  const container = document.getElementById('insulinHistoryList');
+  if (!data || !data.length) { container.innerHTML = '<li class="log-empty">ยังไม่มีประวัติอินซูลินในช่วงนี้</li>'; return; }
+  container.innerHTML = data.slice().reverse().map(d => {
+    const t = new Date(d.time);
+    const label = `${t.getDate()}/${t.getMonth() + 1} ${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`;
+    return `<li class="log-item"><span class="log-food">${label}</span><span class="log-carbs tabular-nums">${d.totalDose} หน่วย</span></li>`;
+  }).join('');
+}
+
+function printReport() {
+  const data = historyData || MOCK_HISTORY;
+  const patientName = profile.displayName;
+  const today = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+  const timingTH = { fasting: 'ก่อนอาหาร', postmeal: 'หลังอาหาร', emergency: 'สุ่มตรวจ' };
+
+  const glucoseRows = (data.glucose || []).map(g => {
+    const t = new Date(g.time);
+    return `<tr><td>${t.toLocaleDateString('th-TH')} ${t.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</td><td>${g.value} mg/dL</td><td>${timingTH[g.timing] || g.timing}</td></tr>`;
+  }).join('') || '<tr><td colspan="3">ไม่มีข้อมูล</td></tr>';
+
+  const carbRows = (data.carbDaily || []).map(c => `<tr><td>${c.date}</td><td>${c.totalCarbs} กรัม</td></tr>`).join('')
+    || '<tr><td colspan="2">ไม่มีข้อมูล</td></tr>';
+
+  const insulinRows = (data.insulin || []).map(ins => {
+    const t = new Date(ins.time);
+    return `<tr><td>${t.toLocaleDateString('th-TH')} ${t.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</td><td>${ins.totalDose} หน่วย</td></tr>`;
+  }).join('') || '<tr><td colspan="2">ไม่มีข้อมูล</td></tr>';
+
+  document.getElementById('printReport').innerHTML = `
+    <h1>รายงานสุขภาพเบาหวาน</h1>
+    <p>ชื่อผู้ป่วย: ${patientName} &nbsp;|&nbsp; วันที่ออกรายงาน: ${today} &nbsp;|&nbsp; ช่วงข้อมูล: 14 วันล่าสุด</p>
+    <h2>ค่าน้ำตาลในเลือด</h2>
+    <table><tr><th>วันเวลา</th><th>ค่า</th><th>ช่วง</th></tr>${glucoseRows}</table>
+    <h2>คาร์บรวมรายวัน</h2>
+    <table><tr><th>วันที่</th><th>คาร์บรวม</th></tr>${carbRows}</table>
+    <h2>ปริมาณอินซูลินที่คำนวณ</h2>
+    <table><tr><th>วันเวลา</th><th>ปริมาณ</th></tr>${insulinRows}</table>
+    <p style="font-size:11px;font-style:italic;">รายงานนี้สร้างจากข้อมูลที่ผู้ป่วยบันทึกด้วยตนเองผ่านแอป ไม่ใช่การวินิจฉัยทางการแพทย์ กรุณาใช้ประกอบการปรึกษาแพทย์เท่านั้น</p>
+  `;
+  window.print();
 }
 
 // ====== ระบบ 1: ตรวจน้ำตาล ======
