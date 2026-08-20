@@ -24,6 +24,9 @@
   }
 }
 html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: 'Sarabun', sans-serif; -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+.tabular-nums { font-variant-numeric: tabular-nums; }
+
 .header { background: var(--brand); color: #fff; padding: 22px 20px calc(18px + env(safe-area-inset-top)); }
 .header-inner { max-width: 640px; margin: 0 auto; }
 .header h1 { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 21px; margin: 0 0 4px; }
@@ -42,7 +45,7 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); fo
 .demo-banner { display: flex; align-items: center; gap: 8px; background: var(--warn-bg); color: var(--warn); border: 1px solid #EFCB86; border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.5; margin-bottom: 16px; }
 .demo-banner svg { flex-shrink: 0; }
 
-.summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
+.summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
 .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 10px; text-align: center; }
 .summary-card.alert { background: var(--over-bg); border-color: var(--over); }
 .summary-num { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 24px; color: var(--ink); }
@@ -70,7 +73,7 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); fo
 <div class="header">
   <div class="header-inner">
     <h1>หลังบ้านพยาบาล</h1>
-    <p>ภาพรวมการบันทึกคาร์บของผู้ป่วยวันนี้</p>
+    <p>ภาพรวมน้ำตาล คาร์บ และอินซูลินของผู้ป่วยวันนี้</p>
   </div>
 </div>
 
@@ -94,9 +97,10 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); fo
     </div>
 
     <div class="summary-grid">
-      <div class="summary-card"><div class="summary-num" id="sumTotal">-</div><div class="summary-label">ผู้ป่วยทั้งหมด</div></div>
-      <div class="summary-card"><div class="summary-num" id="sumLogged">-</div><div class="summary-label">บันทึกวันนี้</div></div>
-      <div class="summary-card" id="overCard"><div class="summary-num" id="sumOver">-</div><div class="summary-label">เกินเป้าวันนี้</div></div>
+      <div class="summary-card"><div class="summary-num tabular-nums" id="sumTotal">-</div><div class="summary-label">ผู้ป่วยทั้งหมด</div></div>
+      <div class="summary-card"><div class="summary-num tabular-nums" id="sumLogged">-</div><div class="summary-label">บันทึกวันนี้</div></div>
+      <div class="summary-card" id="overCard"><div class="summary-num tabular-nums" id="sumOver">-</div><div class="summary-label">คาร์บเกินเป้าวันนี้</div></div>
+      <div class="summary-card" id="hypoCard"><div class="summary-num tabular-nums" id="sumHypo">-</div><div class="summary-label">น้ำตาลต่ำวันนี้</div></div>
     </div>
 
     <div class="card">
@@ -109,18 +113,32 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); fo
 
 <script>
 // ====== ตั้งค่า ======
-const LIFF_ID = "2011121393-snPTo1BO";               // LIFF app แยกอีกตัวสำหรับหน้านี้ (คนละตัวกับหน้าผู้ป่วย)
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpclxW8jOqIqbLbUrSiftt4hzyxr5dtvhKjIAyL-vx74AgO_UP-zEk4/exec"; // URL เดียวกับที่ใช้ในหน้า LIFF ผู้ป่วย
+const LIFF_ID = "2011121393-snPTo1BO";
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpclxW8jOqIqbLbUrSiftt4hzyxr5dtvhKjIAyL-vx74AgO_UP-zEk4/exec";
+
+const ACTIVITY_ICON = { carb: '🍚', glucose: '🩸', insulin: '💉' };
 
 const MOCK_DATA = {
-  summary: { totalPatients: 6, loggedToday: 4, overTargetToday: 2 },
+  summary: { totalPatients: 6, loggedToday: 4, overTargetToday: 2, hypoToday: 1 },
   patients: [
-    { userId: 'demo1', name: 'สมชาย ใจดี', target: 200, todayCarbs: 235, entries: [{meal:'เช้า', food:'ข้าวสวย (1 ทัพพี)', carbs:20},{meal:'เที่ยง', food:'ก๋วยเตี๋ยว (1 ชาม)', carbs:45}] },
-    { userId: 'demo2', name: 'สมหญิง รักสุข', target: 180, todayCarbs: 90, entries: [{meal:'เช้า', food:'ขนมปังแผ่น (1 แผ่น)', carbs:13}] },
-    { userId: 'demo3', name: 'ประไพ แสงทอง', target: 220, todayCarbs: 0, entries: [] },
-    { userId: 'demo4', name: 'วิชัย ศรีสุข', target: 200, todayCarbs: 210, entries: [{meal:'เย็น', food:'ผัดไทย (1 จาน)', carbs:55}] },
-    { userId: 'demo5', name: 'มาลี บุญมาก', target: 190, todayCarbs: 150, entries: [{meal:'เที่ยง', food:'กล้วยน้ำว้า (1 ผล)', carbs:25}] },
-    { userId: 'demo6', name: 'สุรชัย ทองดี', target: 200, todayCarbs: 0, entries: [] }
+    { userId: 'demo1', name: 'สมชาย ใจดี', target: 200, todayCarbs: 235, hypoToday: false, activity: [
+      { type: 'carb', label: 'เช้า · ข้าวสวย (1 ทัพพี)', value: '20 ก.' },
+      { type: 'glucose', label: 'น้ำตาล (หลังอาหาร)', value: '210 mg/dL' },
+      { type: 'insulin', label: 'คำนวณอินซูลิน', value: '4 หน่วย' },
+    ]},
+    { userId: 'demo2', name: 'สมหญิง รักสุข', target: 180, todayCarbs: 90, hypoToday: true, activity: [
+      { type: 'glucose', label: 'น้ำตาล (สุ่มตรวจ)', value: '58 mg/dL' },
+      { type: 'carb', label: 'เช้า · ขนมปังแผ่น (1 แผ่น)', value: '13 ก.' },
+    ]},
+    { userId: 'demo3', name: 'ประไพ แสงทอง', target: 220, todayCarbs: 0, hypoToday: false, activity: [] },
+    { userId: 'demo4', name: 'วิชัย ศรีสุข', target: 200, todayCarbs: 210, hypoToday: false, activity: [
+      { type: 'carb', label: 'เย็น · ผัดไทย (1 จาน)', value: '55 ก.' },
+      { type: 'glucose', label: 'น้ำตาล (ก่อนอาหาร)', value: '145 mg/dL' },
+    ]},
+    { userId: 'demo5', name: 'มาลี บุญมาก', target: 190, todayCarbs: 150, hypoToday: false, activity: [
+      { type: 'carb', label: 'เที่ยง · กล้วยน้ำว้า (1 ผล)', value: '25 ก.' },
+    ]},
+    { userId: 'demo6', name: 'สุรชัย ทองดี', target: 200, todayCarbs: 0, hypoToday: false, activity: [] },
   ]
 };
 
@@ -140,7 +158,6 @@ async function init() {
     }
     showDashboard(data, false);
   } catch (err) {
-    // ยังไม่ได้ตั้งค่า LIFF_ID/URL จริง หรือเปิดนอกบริบทที่ใช้ได้ — ใช้โหมดทดสอบแทน
     showDashboard(MOCK_DATA, true);
   }
 }
@@ -159,25 +176,37 @@ function showDashboard(data, isDemo) {
   document.getElementById('sumTotal').textContent = data.summary.totalPatients;
   document.getElementById('sumLogged').textContent = data.summary.loggedToday;
   document.getElementById('sumOver').textContent = data.summary.overTargetToday;
+  document.getElementById('sumHypo').textContent = data.summary.hypoToday;
   document.getElementById('overCard').classList.toggle('alert', data.summary.overTargetToday > 0);
+  document.getElementById('hypoCard').classList.toggle('alert', data.summary.hypoToday > 0);
 
-  const rank = p => (p.todayCarbs > p.target ? 0 : (p.todayCarbs > 0 ? 1 : 2));
+  const rank = p => {
+    if (p.hypoToday) return 0;
+    if (p.todayCarbs > p.target) return 1;
+    if (p.todayCarbs > 0) return 2;
+    return 3;
+  };
   const sorted = [...data.patients].sort((a, b) => rank(a) - rank(b) || (a.name || '').localeCompare(b.name || '', 'th'));
 
   document.getElementById('patientList').innerHTML = sorted.map(p => {
     const over = p.todayCarbs > p.target;
     const logged = p.todayCarbs > 0;
-    const status = over ? 'warn' : (logged ? 'good' : 'none');
-    const label = over ? 'เกินเป้า' : (logged ? 'ปกติ' : 'ยังไม่บันทึก');
-    const entriesHtml = p.entries.length
-      ? p.entries.map(e => `<div class="entry-row"><span>${e.meal} · ${e.food}</span><span>${e.carbs} ก.</span></div>`).join('')
+    let status = 'none', label = 'ยังไม่บันทึก';
+    if (p.hypoToday) { status = 'warn'; label = '⚠ น้ำตาลต่ำ'; }
+    else if (over) { status = 'warn'; label = 'เกินเป้า'; }
+    else if (logged) { status = 'good'; label = 'ปกติ'; }
+
+    const activity = p.activity || [];
+    const entriesHtml = activity.length
+      ? activity.map(a => `<div class="entry-row"><span>${ACTIVITY_ICON[a.type] || '•'} ${a.label}</span><span class="tabular-nums">${a.value}</span></div>`).join('')
       : '<div class="entry-empty">ยังไม่มีรายการล่าสุด</div>';
+
     return `
       <div class="patient-row" onclick="this.classList.toggle('expanded')">
         <div class="patient-row-top">
           <div>
             <div class="patient-name">${p.name || 'ไม่ทราบชื่อ'}</div>
-            <div class="patient-meta">${p.todayCarbs}/${p.target} กรัมคาร์บวันนี้</div>
+            <div class="patient-meta tabular-nums">${p.todayCarbs}/${p.target} กรัมคาร์บวันนี้</div>
           </div>
           <span class="status-badge ${status}">${label}</span>
         </div>
