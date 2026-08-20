@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>บันทึกคาร์บ</title>
+<title>สุขภาพเบาหวาน</title>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600&family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
@@ -17,8 +17,11 @@
   --brand: #3D6B5C;
   --brand-light: #E4EEE8;
   --good: #5C8C5A;
+  --good-bg: #EAF4EA;
   --warn: #D3963E;
+  --warn-bg: #FCF3E2;
   --over: #C15A46;
+  --over-bg: #FBEAE7;
   --border: #E1E4DB;
   --radius: 16px;
 }
@@ -26,16 +29,37 @@
   :root {
     --bg: #1B211D; --surface: #242B26; --ink: #EDEFE9; --ink-soft: #A2AA9F;
     --brand: #7FB09A; --brand-light: #2C3830; --border: #38423C;
+    --good-bg: #1F3021; --warn-bg: #3A2E14; --over-bg: #3A211D;
   }
 }
 html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: 'Sarabun', sans-serif; -webkit-font-smoothing: antialiased; }
+
+/* ---------- accessibility base ---------- */
+:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+.skip-link { position: absolute; left: 8px; top: -60px; z-index: 100; background: var(--brand); color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; transition: top 0.2s ease; }
+.skip-link:focus { top: 8px; }
+.tabular-nums { font-variant-numeric: tabular-nums; }
+
 .app { max-width: 480px; margin: 0 auto; padding: 20px 16px calc(40px + env(safe-area-inset-bottom)); }
 .header { margin-bottom: 16px; }
 .header h1 { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 20px; margin: 0; color: var(--brand); }
 .greeting { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
 .demo-banner { display: flex; align-items: center; gap: 8px; background: var(--brand-light); color: var(--brand); border-radius: 10px; padding: 10px 12px; font-size: 12px; margin-bottom: 16px; line-height: 1.5; }
 .demo-banner svg { flex-shrink: 0; }
+
+/* ---------- tabs ---------- */
+.tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); color: var(--ink-soft); font-family: 'Sarabun', sans-serif; font-size: 12px; cursor: pointer; }
+.tab-icon { font-size: 19px; line-height: 1; }
+.tab-btn.active { border-color: var(--brand); background: var(--brand-light); color: var(--brand); font-weight: 600; }
+
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+.section-title { font-family: 'Kanit', sans-serif; font-weight: 500; font-size: 15px; margin: 0 0 4px; }
+.sub { font-size: 13px; color: var(--ink-soft); margin: 2px 0 16px; line-height: 1.5; }
+.field-label { font-size: 13.5px; color: var(--ink); margin-bottom: 8px; display: block; }
+.field { margin-bottom: 12px; }
+.big-input { text-align: center; font-size: 22px; font-weight: 600; padding: 14px; }
+
 .ring-card { display: flex; flex-direction: column; align-items: center; padding: 24px 20px; }
 .ring-wrap { position: relative; width: 160px; height: 160px; }
 .ring-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
@@ -45,12 +69,11 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); fo
 .ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .ring-text { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 24px; }
 .ring-unit { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
-.section-title { font-family: 'Kanit', sans-serif; font-weight: 500; font-size: 15px; margin: 0 0 12px; }
+
 .meal-chips { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
 .meal-chip { font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--ink-soft); cursor: pointer; }
 .meal-chip.active { background: var(--brand); border-color: var(--brand); color: #fff; }
 select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); width: 100%; }
-.field { margin-bottom: 12px; }
 .qty-row { display: flex; align-items: center; gap: 10px; }
 .qty-btn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--brand); font-size: 18px; cursor: pointer; flex-shrink: 0; }
 .qty-row input { text-align: center; width: 56px; flex-shrink: 0; }
@@ -59,7 +82,6 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
 .btn-add { width: 100%; padding: 12px; border-radius: 10px; border: none; background: var(--brand-light); color: var(--brand); font-family: 'Sarabun', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; }
 .btn-primary { width: 100%; padding: 13px; border-radius: 10px; border: none; background: var(--brand); color: #fff; font-family: 'Sarabun', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; }
 .btn-primary:disabled { opacity: 0.6; }
-.btn-primary:focus-visible, .btn-add:focus-visible, .meal-chip:focus-visible, .qty-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .log-list { list-style: none; padding: 0; margin: 0; }
 .log-item { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
 .log-item:last-child { border-bottom: none; }
@@ -73,9 +95,38 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
 .edu-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; font-size: 13px; line-height: 1.7; color: var(--ink-soft); }
 .edu-content p { margin: 12px 0 0; }
 .edu-note { font-size: 11px; font-style: italic; margin-top: 10px; }
+
+/* ---------- warn box (insulin disclaimer) ---------- */
+.warn-box { display: flex; gap: 10px; background: var(--warn-bg); border: 1px solid #EFCB86; border-radius: 12px; padding: 14px; margin-bottom: 18px; font-size: 12.5px; color: #8A5A12; line-height: 1.6; }
+.warn-box svg { flex-shrink: 0; margin-top: 2px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* ---------- result box (glucose + insulin) ---------- */
+.result-placeholder { font-size: 12.5px; color: var(--ink-soft); font-style: italic; margin-top: 14px; }
+.result-box { display: none; margin-top: 16px; padding: 18px; border-radius: 14px; border: 2px solid; text-align: center; }
+.result-box.reveal { animation: reveal-in 0.3s ease-out; }
+@media (prefers-reduced-motion: reduce) { .result-box.reveal { animation: none; } }
+.result-box.good { background: var(--good-bg); border-color: var(--good); }
+.result-box.warn { background: var(--warn-bg); border-color: var(--warn); }
+.result-box.danger { background: var(--over-bg); border-color: var(--over); }
+.result-box.neutral { background: var(--brand-light); border-color: var(--brand); }
+.result-title { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 17px; margin-bottom: 8px; }
+.result-box.good .result-title { color: var(--good); }
+.result-box.warn .result-title { color: var(--warn); }
+.result-box.danger .result-title { color: var(--over); }
+.result-message { font-size: 13.5px; color: var(--ink); line-height: 1.6; }
+.result-total { font-family: 'Kanit', sans-serif; font-weight: 700; font-size: 30px; margin: 2px 0 6px; }
+.result-breakdown { font-size: 13px; color: var(--ink-soft); }
+.result-footnote { font-size: 11.5px; color: var(--ink-soft); font-style: italic; margin-top: 12px; line-height: 1.5; }
+
+@keyframes reveal-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes gentle-flash { 0%, 100% { background-color: var(--over-bg); } 50% { background-color: #F6C6C1; } }
+.flash-danger { animation: gentle-flash 1.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .flash-danger { animation: none; background-color: var(--over-bg); } }
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">ข้ามไปยังเนื้อหาหลัก</a>
 <div class="app">
 
   <div class="demo-banner" id="demoBanner">
@@ -84,74 +135,168 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
   </div>
 
   <div class="header">
-    <h1>บันทึกคาร์บ</h1>
+    <h1>สุขภาพเบาหวาน</h1>
     <div class="greeting">สวัสดี, <span id="patientName">กำลังโหลด...</span></div>
   </div>
 
-  <div class="card ring-card">
-    <div class="ring-wrap">
-      <svg viewBox="0 0 120 120" class="ring-svg">
-        <circle cx="60" cy="60" r="54" class="ring-track"></circle>
-        <circle cx="60" cy="60" r="54" class="ring-progress" id="ringProgress" stroke-dasharray="339.3" stroke-dashoffset="339.3"></circle>
-      </svg>
-      <div class="ring-label">
-        <span class="ring-text" id="ringText">0/200</span>
-        <span class="ring-unit">กรัมคาร์บวันนี้</span>
+  <div class="tabs" role="tablist" aria-label="เครื่องมือดูแลเบาหวาน">
+    <button type="button" role="tab" id="tab-glucose" aria-selected="true" aria-controls="panel-glucose" class="tab-btn active" onclick="switchTab('glucose', this)">
+      <span class="tab-icon" aria-hidden="true">🩸</span>ตรวจน้ำตาล
+    </button>
+    <button type="button" role="tab" id="tab-carb" aria-selected="false" aria-controls="panel-carb" class="tab-btn" onclick="switchTab('carb', this)">
+      <span class="tab-icon" aria-hidden="true">🍚</span>บันทึกคาร์บ
+    </button>
+    <button type="button" role="tab" id="tab-insulin" aria-selected="false" aria-controls="panel-insulin" class="tab-btn" onclick="switchTab('insulin', this)">
+      <span class="tab-icon" aria-hidden="true">💉</span>อินซูลิน
+    </button>
+  </div>
+
+  <div id="main-content">
+
+    <!-- ===================== PANEL: GLUCOSE ===================== -->
+    <div role="tabpanel" id="panel-glucose" aria-labelledby="tab-glucose" tabindex="0" class="tab-panel">
+      <div class="card">
+        <p class="section-title">ตรวจน้ำตาลในเลือด</p>
+        <p class="sub">กรอกค่าน้ำตาลในเลือดและช่วงเวลาที่ตรวจ</p>
+
+        <div class="field">
+          <label class="field-label" for="glucoseInput">ระดับน้ำตาลในเลือด (mg/dL)</label>
+          <input type="number" inputmode="decimal" id="glucoseInput" placeholder="เช่น 140" class="big-input tabular-nums">
+        </div>
+
+        <div class="field">
+          <span class="field-label" id="timingLabel">ตรวจค่านี้ช่วงเวลาใด?</span>
+          <div class="meal-chips" role="group" aria-labelledby="timingLabel">
+            <button type="button" class="meal-chip active" onclick="selectTiming('fasting', this)">เช้า / ก่อนอาหาร</button>
+            <button type="button" class="meal-chip" onclick="selectTiming('postmeal', this)">หลังอาหาร</button>
+            <button type="button" class="meal-chip" onclick="selectTiming('emergency', this)">ฉุกเฉิน / สุ่มตรวจ</button>
+          </div>
+        </div>
+
+        <div class="error-msg" id="glucoseError" role="alert"></div>
+        <button class="btn-primary" onclick="analyzeGlucose()">วิเคราะห์ค่าน้ำตาล</button>
+
+        <p class="result-placeholder" id="glucosePlaceholder">ผลลัพธ์จะแสดงที่นี่หลังจากคุณกดปุ่ม "วิเคราะห์ค่าน้ำตาล"</p>
+        <div class="result-box" id="glucoseResult" aria-live="polite"></div>
       </div>
     </div>
-  </div>
 
-  <div class="card">
-    <p class="section-title">เพิ่มรายการอาหาร</p>
-    <div class="meal-chips">
-      <button class="meal-chip active" onclick="selectMeal('เช้า', this)">เช้า</button>
-      <button class="meal-chip" onclick="selectMeal('เที่ยง', this)">เที่ยง</button>
-      <button class="meal-chip" onclick="selectMeal('เย็น', this)">เย็น</button>
-      <button class="meal-chip" onclick="selectMeal('ของว่าง', this)">ของว่าง</button>
+    <!-- ===================== PANEL: CARB (เดิม) ===================== -->
+    <div role="tabpanel" id="panel-carb" aria-labelledby="tab-carb" tabindex="0" class="tab-panel" hidden>
+
+      <div class="card ring-card">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 120 120" class="ring-svg">
+            <circle cx="60" cy="60" r="54" class="ring-track"></circle>
+            <circle cx="60" cy="60" r="54" class="ring-progress" id="ringProgress" stroke-dasharray="339.3" stroke-dashoffset="339.3"></circle>
+          </svg>
+          <div class="ring-label">
+            <span class="ring-text tabular-nums" id="ringText">0/200</span>
+            <span class="ring-unit">กรัมคาร์บวันนี้</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="section-title">เพิ่มรายการอาหาร</p>
+        <div class="field" style="margin-top:12px;">
+          <span class="field-label" id="mealLabel">มื้ออาหาร</span>
+          <div class="meal-chips" role="group" aria-labelledby="mealLabel">
+            <button type="button" class="meal-chip active" onclick="selectMeal('เช้า', this)">เช้า</button>
+            <button type="button" class="meal-chip" onclick="selectMeal('เที่ยง', this)">เที่ยง</button>
+            <button type="button" class="meal-chip" onclick="selectMeal('เย็น', this)">เย็น</button>
+            <button type="button" class="meal-chip" onclick="selectMeal('ของว่าง', this)">ของว่าง</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="foodSelect">เลือกอาหาร</label>
+          <select id="foodSelect" onchange="updatePreview()"></select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="qtyInput">จำนวน</label>
+          <div class="qty-row">
+            <button class="qty-btn" onclick="changeQty(-0.5)" aria-label="ลดจำนวน">−</button>
+            <input type="number" inputmode="decimal" id="qtyInput" value="1" min="0.5" step="0.5" oninput="updatePreview()" class="tabular-nums">
+            <span style="font-size:13px;color:var(--ink-soft)">ส่วน</span>
+            <button class="qty-btn" onclick="changeQty(0.5)" aria-label="เพิ่มจำนวน">+</button>
+          </div>
+        </div>
+        <div class="preview tabular-nums" id="carbPreview" aria-live="polite">≈ 0 กรัมคาร์บ</div>
+        <div class="error-msg" id="formError" role="alert"></div>
+        <button class="btn-add" onclick="addEntry()">+ เพิ่มรายการ</button>
+      </div>
+
+      <div class="card">
+        <p class="section-title">รายการวันนี้</p>
+        <ul class="log-list" id="logList"></ul>
+      </div>
+
+      <button class="btn-primary" id="saveBtn" onclick="saveToday()">บันทึกข้อมูล</button>
+
+      <div class="card" style="margin-top:16px;">
+        <button class="edu-toggle" onclick="toggleEducation()" aria-expanded="false" aria-controls="eduContent">
+          ทำไมต้องนับคาร์บ?
+          <svg id="eduChevron" class="edu-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="edu-content" id="eduContent">
+          <p>การนับคาร์บ (Carbohydrate Counting) คือการประมาณปริมาณคาร์โบไฮเดรตในอาหารแต่ละมื้อ เพื่อช่วยควบคุมระดับน้ำตาลในเลือดให้อยู่ในเกณฑ์ที่เหมาะสม</p>
+          <p>อาหารกลุ่มข้าว แป้ง ก๋วยเตี๋ยว ผลไม้ และนม มีคาร์บมากกว่าผักใบเขียวหรือเนื้อสัตว์ การกินคาร์บในปริมาณใกล้เคียงกันทุกมื้อ จะช่วยควบคุมน้ำตาลได้ง่ายขึ้น</p>
+          <p class="edu-note">เนื้อหานี้เป็นตัวอย่างเบื้องต้นเท่านั้น ควรให้อาจารย์พยาบาลตรวจทานและเพิ่มเติมให้ครบถ้วนถูกต้องก่อนใช้งานจริง</p>
+        </div>
+      </div>
     </div>
-    <div class="field">
-      <select id="foodSelect" onchange="updatePreview()"></select>
+
+    <!-- ===================== PANEL: INSULIN ===================== -->
+    <div role="tabpanel" id="panel-insulin" aria-labelledby="tab-insulin" tabindex="0" class="tab-panel" hidden>
+      <div class="card">
+        <p class="section-title">เครื่องคำนวณปริมาณอินซูลิน</p>
+
+        <div class="warn-box">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M8 1.5l7 12.5H1L8 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 6v3.5M8 11.5v.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          <span>เป็นเพียงการประมาณค่า ไม่ใช่คำแนะนำทางการแพทย์ ค่า Target, ISF และ ICR ควรได้รับจากแพทย์หรือทีมดูแลผู้ป่วยเบาหวานของคุณเท่านั้น ห้ามเดาหรือเปลี่ยนค่าเหล่านี้เอง</span>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label class="field-label" for="targetInput">เป้าหมายน้ำตาล</label>
+            <input type="number" inputmode="decimal" id="targetInput" placeholder="เช่น 120" class="tabular-nums">
+          </div>
+          <div class="field">
+            <label class="field-label" for="isfInput">ISF</label>
+            <input type="number" inputmode="decimal" id="isfInput" placeholder="เช่น 50" class="tabular-nums">
+          </div>
+          <div class="field">
+            <label class="field-label" for="icrInput">ICR</label>
+            <input type="number" inputmode="decimal" id="icrInput" placeholder="เช่น 15" class="tabular-nums">
+          </div>
+          <div class="field">
+            <label class="field-label" for="currentBgInput">น้ำตาลปัจจุบัน</label>
+            <input type="number" inputmode="decimal" id="currentBgInput" placeholder="เช่น 180" class="tabular-nums">
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="mealCarbInput">คาร์บมื้อนี้ (กรัม)</label>
+          <input type="number" inputmode="decimal" id="mealCarbInput" placeholder="เช่น 45" class="tabular-nums">
+        </div>
+
+        <div class="error-msg" id="insulinError" role="alert"></div>
+        <button class="btn-primary" onclick="calcInsulin()">คำนวณปริมาณอินซูลิน</button>
+
+        <p class="result-placeholder" id="insulinPlaceholder">ปริมาณอินซูลินที่แนะนำจะแสดงที่นี่หลังจากคุณกดปุ่ม "คำนวณปริมาณอินซูลิน"</p>
+        <div class="result-box" id="insulinResult" aria-live="polite"></div>
+      </div>
     </div>
-    <div class="field qty-row">
-      <button class="qty-btn" onclick="changeQty(-0.5)" aria-label="ลดจำนวน">−</button>
-      <input type="number" id="qtyInput" value="1" min="0.5" step="0.5" oninput="updatePreview()">
-      <span style="font-size:13px;color:var(--ink-soft)">ส่วน</span>
-      <button class="qty-btn" onclick="changeQty(0.5)" aria-label="เพิ่มจำนวน">+</button>
-    </div>
-    <div class="preview" id="carbPreview">≈ 0 กรัมคาร์บ</div>
-    <div class="error-msg" id="formError"></div>
-    <button class="btn-add" onclick="addEntry()">+ เพิ่มรายการ</button>
+
   </div>
-
-  <div class="card">
-    <p class="section-title">รายการวันนี้</p>
-    <ul class="log-list" id="logList"></ul>
-  </div>
-
-  <button class="btn-primary" id="saveBtn" onclick="saveToday()">บันทึกข้อมูล</button>
-
-  <div class="card" style="margin-top:16px;">
-    <button class="edu-toggle" onclick="toggleEducation()">
-      ทำไมต้องนับคาร์บ?
-      <svg id="eduChevron" class="edu-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-    <div class="edu-content" id="eduContent">
-      <p>การนับคาร์บ (Carbohydrate Counting) คือการประมาณปริมาณคาร์โบไฮเดรตในอาหารแต่ละมื้อ เพื่อช่วยควบคุมระดับน้ำตาลในเลือดให้อยู่ในเกณฑ์ที่เหมาะสม</p>
-      <p>อาหารกลุ่มข้าว แป้ง ก๋วยเตี๋ยว ผลไม้ และนม มีคาร์บมากกว่าผักใบเขียวหรือเนื้อสัตว์ การกินคาร์บในปริมาณใกล้เคียงกันทุกมื้อ จะช่วยควบคุมน้ำตาลได้ง่ายขึ้น</p>
-      <p class="edu-note">เนื้อหานี้เป็นตัวอย่างเบื้องต้นเท่านั้น ควรให้อาจารย์พยาบาลตรวจทานและเพิ่มเติมให้ครบถ้วนถูกต้องก่อนใช้งานจริง</p>
-    </div>
-  </div>
-
 </div>
 
 <script>
 // ====== ตั้งค่า — แก้ 2 ค่านี้หลังจากได้ LIFF ID และ Apps Script Web App URL จริง ======
-const LIFF_ID = "2011121393-V8xdJQ6r";                   // เช่น "1234567890-abcdefgh"
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpclxW8jOqIqbLbUrSiftt4hzyxr5dtvhKjIAyL-vx74AgO_UP-zEk4/exec"; // ได้ตอน deploy Apps Script เป็น Web App
+const LIFF_ID = "2011121393-V8xdJQ6r";
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpclxW8jOqIqbLbUrSiftt4hzyxr5dtvhKjIAyL-vx74AgO_UP-zEk4/exec";
 const DAILY_TARGET_G = 200; // เป้าหมายคาร์บ/วัน (ตัวอย่าง — ทีหลังควรดึงมาจาก Sheet ต่อผู้ป่วยแต่ละคน)
 
 // ====== ฐานข้อมูลอาหารตัวอย่าง — ค่าคาร์บเป็นค่าประมาณสำหรับทดสอบ UI เท่านั้น ======
-// ก่อนใช้กับผู้ป่วยจริง ต้องให้อาจารย์พยาบาล/นักโภชนาการตรวจสอบและแก้ไขค่าให้ถูกต้อง
 const FOOD_DB = [
   { name: "ข้าวสวย (1 ทัพพี)", carbs: 20 },
   { name: "ข้าวเหนียว (1 ก้อนเล็ก)", carbs: 23 },
@@ -166,6 +311,7 @@ const FOOD_DB = [
 let profile = { userId: null, displayName: "ผู้ป่วยทดสอบ" };
 let todayLog = [];
 let selectedMeal = "เช้า";
+let selectedTiming = "fasting";
 
 async function initLiff() {
   try {
@@ -181,6 +327,93 @@ async function initLiff() {
   document.getElementById('patientName').textContent = profile.displayName;
 }
 
+// ====== แท็บ ======
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => { p.hidden = true; p.classList.remove('active'); });
+  const panel = document.getElementById('panel-' + id);
+  panel.hidden = false;
+  panel.classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+  btn.classList.add('active');
+  btn.setAttribute('aria-selected', 'true');
+}
+
+// ====== ระบบ 1: ตรวจน้ำตาล ======
+const GLUCOSE_RANGES = {
+  fasting: [{ max: 130, level: 'normal' }, { max: 180, level: 'high' }, { max: Infinity, level: 'very-high' }],
+  postmeal: [{ max: 180, level: 'normal' }, { max: 250, level: 'high' }, { max: Infinity, level: 'very-high' }],
+  emergency: [{ max: 180, level: 'normal' }, { max: 250, level: 'high' }, { max: Infinity, level: 'very-high' }],
+};
+const GLUCOSE_LABELS = { normal: 'ปกติ', high: 'สูงกว่าเกณฑ์', 'very-high': 'สูงมาก' };
+
+function selectTiming(t, btn) {
+  selectedTiming = t;
+  btn.parentElement.querySelectorAll('.meal-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+async function analyzeGlucose() {
+  const el = document.getElementById('glucoseError');
+  const value = parseFloat(document.getElementById('glucoseInput').value);
+  if (!value || value <= 0) { el.textContent = 'กรอกค่าน้ำตาลในเลือดก่อนนะ'; el.style.display = 'block'; return; }
+  el.style.display = 'none';
+
+  const box = document.getElementById('glucoseResult');
+  document.getElementById('glucosePlaceholder').style.display = 'none';
+  box.classList.remove('flash-danger');
+  box.removeAttribute('role');
+
+  let level, cls, title, message;
+  const timingLabel = { fasting: 'ก่อนอาหาร', postmeal: 'หลังอาหาร', emergency: 'สุ่มตรวจ' }[selectedTiming];
+
+  if (value < 70) {
+    level = 'danger'; cls = 'danger';
+    title = `อันตราย! ภาวะน้ำตาลในเลือดต่ำ (${value} mg/dL)`;
+    message = 'ดื่มน้ำหวานครึ่งแก้ว หรือทานลูกอมทันที หากอาการไม่ดีขึ้นภายใน 15 นาที หรือไม่สามารถกินดื่มได้อย่างปลอดภัย ให้ขอความช่วยเหลือฉุกเฉินทันที';
+  } else {
+    const table = GLUCOSE_RANGES[selectedTiming] || GLUCOSE_RANGES.postmeal;
+    const band = table.find(b => value <= b.max);
+    level = band.level;
+    title = `${GLUCOSE_LABELS[band.level]} (${value} mg/dL, ${timingLabel})`;
+    if (band.level === 'normal') { message = 'ค่านี้อยู่ในเกณฑ์ปกติ รักษาสุขภาพและกิจวัตรที่ดีต่อไป'; cls = 'good'; }
+    else if (band.level === 'high') { message = 'ค่านี้สูงกว่าเกณฑ์ปกติ ลองทบทวนมื้ออาหารที่ผ่านมา และตรวจซ้ำอีกครั้งในภายหลัง'; cls = 'warn'; }
+    else {
+      cls = 'danger';
+      message = selectedTiming === 'emergency'
+        ? 'ค่านี้สูงมาก ควรไปพบแพทย์โดยเร็ว โดยเฉพาะหากมีอาการสับสน กระหายน้ำมาก คลื่นไส้ หรือหายใจลำบาก'
+        : 'ค่านี้สูงมาก กรุณาติดต่อแพทย์หรือทีมดูแลของคุณ';
+    }
+  }
+
+  box.className = `result-box ${cls} reveal`;
+  box.style.display = 'block';
+  if (level === 'danger') box.setAttribute('role', 'alert');
+  box.innerHTML = `<div class="result-title tabular-nums">${title}</div><div class="result-message">${message}</div><div class="result-footnote" id="glucoseSaveStatus">กำลังบันทึก...</div>`;
+  if (level === 'danger') box.classList.add('flash-danger');
+
+  saveGlucose(value, selectedTiming, level);
+}
+
+async function saveGlucose(value, timing, level) {
+  const statusEl = document.getElementById('glucoseSaveStatus');
+  if (!GAS_WEB_APP_URL.startsWith('https://script.google.com/')) {
+    if (statusEl) statusEl.textContent = 'โหมดทดสอบ — ยังไม่บันทึกเข้าระบบจริง';
+    return;
+  }
+  try {
+    const res = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ type: 'glucose', userId: profile.userId, displayName: profile.displayName, value, timing, level }),
+    });
+    const result = await res.json();
+    if (statusEl) statusEl.textContent = result.ok ? 'บันทึกเข้าระบบแล้ว' : 'บันทึกไม่สำเร็จ: ' + (result.error || '');
+  } catch (err) {
+    if (statusEl) statusEl.textContent = 'บันทึกไม่สำเร็จ (เชื่อมต่อไม่ได้)';
+  }
+}
+
+// ====== ระบบ 2: บันทึกคาร์บ (โค้ดเดิม) ======
 function populateFoodSelect() {
   const sel = document.getElementById('foodSelect');
   FOOD_DB.forEach((f, i) => {
@@ -202,7 +435,7 @@ function updatePreview() {
 
 function selectMeal(meal, btn) {
   selectedMeal = meal;
-  document.querySelectorAll('.meal-chip').forEach(c => c.classList.remove('active'));
+  btn.parentElement.querySelectorAll('.meal-chip').forEach(c => c.classList.remove('active'));
   btn.classList.add('active');
 }
 
@@ -251,7 +484,7 @@ function renderLog() {
   todayLog.forEach((entry, i) => {
     const li = document.createElement('li');
     li.className = 'log-item';
-    li.innerHTML = `<span class="log-meal">${entry.meal}</span><span class="log-food">${entry.food}</span><span class="log-carbs">${entry.carbs} ก.</span><button class="log-del" onclick="removeEntry(${i})" aria-label="ลบรายการ">×</button>`;
+    li.innerHTML = `<span class="log-meal">${entry.meal}</span><span class="log-food">${entry.food}</span><span class="log-carbs tabular-nums">${entry.carbs} ก.</span><button class="log-del" onclick="removeEntry(${i})" aria-label="ลบรายการ">×</button>`;
     list.appendChild(li);
   });
 }
@@ -287,7 +520,7 @@ async function saveToday() {
     const res = await fetch(GAS_WEB_APP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ userId: profile.userId, displayName: profile.displayName, entries: todayLog }),
+      body: JSON.stringify({ type: 'carb', userId: profile.userId, displayName: profile.displayName, entries: todayLog }),
     });
     const result = await res.json();
     if (!result.ok) throw new Error(result.error || 'ไม่ทราบสาเหตุ');
@@ -306,9 +539,71 @@ async function saveToday() {
 function toggleEducation() {
   const box = document.getElementById('eduContent');
   const chevron = document.getElementById('eduChevron');
+  const btn = document.querySelector('.edu-toggle');
   const isOpen = box.style.maxHeight && box.style.maxHeight !== '0px';
   box.style.maxHeight = isOpen ? '0px' : box.scrollHeight + 'px';
   chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(90deg)';
+  btn.setAttribute('aria-expanded', String(!isOpen));
+}
+
+// ====== ระบบ 3: ปริมาณอินซูลิน ======
+async function calcInsulin() {
+  const el = document.getElementById('insulinError');
+  const target = parseFloat(document.getElementById('targetInput').value);
+  const isf = parseFloat(document.getElementById('isfInput').value);
+  const icr = parseFloat(document.getElementById('icrInput').value);
+  const current = parseFloat(document.getElementById('currentBgInput').value);
+  const carbs = parseFloat(document.getElementById('mealCarbInput').value);
+
+  if (!target || target <= 0 || !isf || isf <= 0 || !icr || icr <= 0) {
+    el.textContent = 'กรอกค่า Target, ISF และ ICR ที่มากกว่า 0 ให้ครบก่อน (เป็นค่าที่แพทย์กำหนดให้คุณโดยเฉพาะ)';
+    el.style.display = 'block';
+    return;
+  }
+  if ((!current || current <= 0) && (!carbs || carbs <= 0)) {
+    el.textContent = 'กรอกน้ำตาลปัจจุบัน หรือคาร์บมื้อนี้ อย่างน้อย 1 ค่า';
+    el.style.display = 'block';
+    return;
+  }
+  el.style.display = 'none';
+
+  let correctionDose = current > 0 ? (current - target) / isf : 0;
+  if (correctionDose < 0) correctionDose = 0;
+  const mealDose = carbs > 0 ? carbs / icr : 0;
+  const totalDose = Math.round(correctionDose + mealDose);
+
+  document.getElementById('insulinPlaceholder').style.display = 'none';
+  const box = document.getElementById('insulinResult');
+  box.className = 'result-box neutral reveal';
+  box.style.display = 'block';
+  box.innerHTML = `
+    <div class="result-title">ปริมาณที่แนะนำ</div>
+    <div class="result-total tabular-nums">${totalDose} หน่วย</div>
+    <div class="result-breakdown tabular-nums">ส่วนแก้ไข: ${correctionDose.toFixed(1)} + ส่วนมื้ออาหาร: ${mealDose.toFixed(1)}</div>
+    <div class="result-footnote">ตัวเลขนี้มาจากสูตรคำนวณเท่านั้น กรุณาตรวจสอบกับพยาบาลหรือแพทย์ก่อนฉีดอินซูลินทุกครั้ง</div>
+    <div class="result-footnote" id="insulinSaveStatus">กำลังบันทึก...</div>
+  `;
+
+  saveInsulin({ target, isf, icr, current: current || 0, carbs: carbs || 0, correctionDose, mealDose, totalDose });
+}
+
+async function saveInsulin(data) {
+  const statusEl = document.getElementById('insulinSaveStatus');
+  if (!GAS_WEB_APP_URL.startsWith('https://script.google.com/')) {
+    if (statusEl) statusEl.textContent = 'โหมดทดสอบ — ยังไม่บันทึกเข้าระบบจริง';
+    return;
+  }
+  try {
+    const res = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(Object.assign({ type: 'insulin', userId: profile.userId, displayName: profile.displayName }, data)),
+    });
+    const result = await res.json();
+    if (statusEl) statusEl.textContent = result.ok ? 'บันทึกเข้าระบบแล้ว' : 'บันทึกไม่สำเร็จ: ' + (result.error || '');
+  } catch (err) {
+    if (statusEl) statusEl.textContent = 'บันทึกไม่สำเร็จ (เชื่อมต่อไม่ได้)';
+  }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
