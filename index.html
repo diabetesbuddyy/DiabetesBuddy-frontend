@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>สุขภาพเบาหวาน</title>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600&family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -27,7 +28,7 @@
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #233d2c; --surface: #242B26; --ink: #EDEFE9; --ink-soft: #A2AA9F;
+    --bg: #1B211D; --surface: #242B26; --ink: #EDEFE9; --ink-soft: #A2AA9F;
     --brand: #7FB09A; --brand-light: #2C3830; --border: #38423C;
     --good-bg: #1F3021; --warn-bg: #3A2E14; --over-bg: #3A211D;
   }
@@ -42,7 +43,8 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); fo
 
 .app { max-width: 480px; margin: 0 auto; padding: 20px 16px calc(40px + env(safe-area-inset-bottom)); }
 .header { margin-bottom: 16px; }
-.header h1 { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 30px; margin: 0; color: var(--ink); }
+.header h1 { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 20px; margin: 0; color: var(--brand); }
+.header-date { font-size: 12.5px; color: var(--ink-soft); margin-top: 4px; }
 .greeting { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
 .demo-banner { display: flex; align-items: center; gap: 8px; background: var(--brand-light); color: var(--brand); border-radius: 10px; padding: 10px 12px; font-size: 12px; margin-bottom: 16px; line-height: 1.5; }
 .demo-banner svg { flex-shrink: 0; }
@@ -73,6 +75,16 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); fo
 .meal-chips { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
 .meal-chip { font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--ink-soft); cursor: pointer; }
 .meal-chip.active { background: var(--brand); border-color: var(--brand); color: #fff; }
+
+/* ตรวจน้ำตาล: ปุ่มช่วงเวลาใหญ่ขึ้น มีอีโมจิ — แนวตั้งเมื่อจอแคบ แนวนอนเมื่อจอกว้าง */
+.timing-chips { flex-direction: column; flex-wrap: nowrap; gap: 10px; }
+.timing-chips .meal-chip { display: flex; align-items: center; gap: 12px; padding: 14px 16px; font-size: 15px; border-radius: 12px; justify-content: flex-start; text-align: left; }
+.timing-chips .chip-icon { font-size: 22px; line-height: 1; flex-shrink: 0; }
+@media (min-width: 480px) {
+  .timing-chips { flex-direction: row; }
+  .timing-chips .meal-chip { flex: 1; flex-direction: column; justify-content: center; text-align: center; gap: 6px; padding: 14px 8px; }
+  .timing-chips .chip-icon { font-size: 24px; }
+}
 select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); width: 100%; }
 .qty-row { display: flex; align-items: center; gap: 10px; }
 .qty-btn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--brand); font-size: 18px; cursor: pointer; flex-shrink: 0; }
@@ -101,6 +113,14 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
 .warn-box svg { flex-shrink: 0; margin-top: 2px; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
+/* ---------- tooltip (info "?" buttons) ---------- */
+.label-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; position: relative; }
+.label-row .field-label { margin-bottom: 0; }
+.info-btn { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--brand); background: var(--surface); color: var(--brand); font-size: 11px; font-weight: 700; line-height: 1; cursor: pointer; padding: 0; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.tooltip-box { display: none; position: absolute; top: 100%; left: 0; z-index: 20; margin-top: 6px; background: var(--ink); color: #fff; font-size: 12px; line-height: 1.6; padding: 10px 12px; border-radius: 10px; width: max(220px, 90%); box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
+.info-btn:hover + .tooltip-box, .info-btn:focus-visible + .tooltip-box { display: block; }
+.tooltip-box.show { display: block; }
+
 /* ---------- result box (glucose + insulin) ---------- */
 .result-placeholder { font-size: 12.5px; color: var(--ink-soft); font-style: italic; margin-top: 14px; }
 .result-box { display: none; margin-top: 16px; padding: 18px; border-radius: 14px; border: 2px solid; text-align: center; }
@@ -127,18 +147,15 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
 /* ---------- history charts ---------- */
 #glucoseChart svg, #carbChart svg { display: block; }
 .history-entry-list { list-style: none; padding: 0; margin: 0; }
-#printReport { display: none; }
 
-/* ---------- print report ---------- */
-@media print {
-  body * { visibility: hidden; }
-  #printReport, #printReport * { visibility: visible; }
-  #printReport { display: block !important; position: absolute; left: 0; top: 0; width: 100%; padding: 24px; }
-  #printReport table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 12px; }
-  #printReport th, #printReport td { border: 1px solid #999; padding: 5px 8px; text-align: left; }
-  #printReport h1 { font-family: 'Kanit', sans-serif; font-size: 18px; margin-bottom: 4px; }
-  #printReport h2 { font-family: 'Kanit', sans-serif; font-size: 14px; margin-top: 18px; margin-bottom: 6px; }
-}
+/* ---------- report captured by html2pdf ---------- */
+/* วางไว้นอกจอ (ไม่ใช่ display:none) เพราะ html2canvas ต้องเห็น layout จริงถึงจะ capture ได้ */
+#printReport { position: absolute; left: -9999px; top: 0; width: 700px; background: #fff; padding: 24px; color: #1a1a1a; }
+#printReport table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 13px; font-family: 'Sarabun', sans-serif; }
+#printReport th, #printReport td { border: 1px solid #999; padding: 6px 10px; text-align: left; }
+#printReport h1 { font-family: 'Kanit', sans-serif; font-size: 20px; margin: 0 0 6px; }
+#printReport h2 { font-family: 'Kanit', sans-serif; font-size: 15px; margin: 18px 0 8px; }
+#printReport p { font-family: 'Sarabun', sans-serif; }
 </style>
 </head>
 <body>
@@ -152,6 +169,7 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
 
   <div class="header">
     <h1>สุขภาพเบาหวาน</h1>
+    <div class="header-date" id="headerDate"></div>
     <div class="greeting">สวัสดี, <span id="patientName">กำลังโหลด...</span></div>
   </div>
 
@@ -185,10 +203,10 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
 
         <div class="field">
           <span class="field-label" id="timingLabel">ตรวจค่านี้ช่วงเวลาใด?</span>
-          <div class="meal-chips" role="group" aria-labelledby="timingLabel">
-            <button type="button" class="meal-chip active" onclick="selectTiming('fasting', this)">เช้า / ก่อนอาหาร</button>
-            <button type="button" class="meal-chip" onclick="selectTiming('postmeal', this)">หลังอาหาร</button>
-            <button type="button" class="meal-chip" onclick="selectTiming('emergency', this)">ฉุกเฉิน / สุ่มตรวจ</button>
+          <div class="meal-chips timing-chips" role="group" aria-labelledby="timingLabel">
+            <button type="button" class="meal-chip active" onclick="selectTiming('fasting', this)"><span class="chip-icon" aria-hidden="true">🌅</span><span>เช้า / ก่อนอาหาร</span></button>
+            <button type="button" class="meal-chip" onclick="selectTiming('postmeal', this)"><span class="chip-icon" aria-hidden="true">🍽️</span><span>หลังอาหาร</span></button>
+            <button type="button" class="meal-chip" onclick="selectTiming('emergency', this)"><span class="chip-icon" aria-hidden="true">🚨</span><span>ฉุกเฉิน / สุ่มตรวจ</span></button>
           </div>
         </div>
 
@@ -277,16 +295,28 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
 
         <div class="grid-2">
           <div class="field">
-            <label class="field-label" for="targetInput">เป้าหมายน้ำตาล</label>
-            <input type="number" inputmode="decimal" id="targetInput" placeholder="เช่น 120" class="tabular-nums">
+            <div class="label-row">
+              <label class="field-label" for="targetInput">เป้าหมายน้ำตาล</label>
+              <button type="button" class="info-btn" aria-label="คำอธิบายเป้าหมายน้ำตาล" onclick="toggleTooltip(this)">?</button>
+              <span class="tooltip-box" id="targetTooltip" role="tooltip">ระดับน้ำตาลในเลือดที่แพทย์ตั้งเป้าให้คุณ (mg/dL) ใช้เป็นค่าฐานตอนคำนวณโดสแก้ไข กรอกค่าที่แพทย์กำหนดให้คุณโดยเฉพาะเท่านั้น</span>
+            </div>
+            <input type="number" inputmode="decimal" id="targetInput" placeholder="เช่น 120" class="tabular-nums" aria-describedby="targetTooltip">
           </div>
           <div class="field">
-            <label class="field-label" for="isfInput">ISF</label>
-            <input type="number" inputmode="decimal" id="isfInput" placeholder="เช่น 50" class="tabular-nums">
+            <div class="label-row">
+              <label class="field-label" for="isfInput">ISF</label>
+              <button type="button" class="info-btn" aria-label="คำอธิบาย ISF" onclick="toggleTooltip(this)">?</button>
+              <span class="tooltip-box" id="isfTooltip" role="tooltip">Insulin Sensitivity Factor — อินซูลิน 1 หน่วยลดน้ำตาลได้กี่ mg/dL เช่น ISF 50 หมายถึง 1 หน่วยลดน้ำตาลได้ ~50 mg/dL แพทย์เป็นผู้กำหนดค่านี้ให้คุณโดยเฉพาะ</span>
+            </div>
+            <input type="number" inputmode="decimal" id="isfInput" placeholder="เช่น 50" class="tabular-nums" aria-describedby="isfTooltip">
           </div>
           <div class="field">
-            <label class="field-label" for="icrInput">ICR</label>
-            <input type="number" inputmode="decimal" id="icrInput" placeholder="เช่น 15" class="tabular-nums">
+            <div class="label-row">
+              <label class="field-label" for="icrInput">ICR</label>
+              <button type="button" class="info-btn" aria-label="คำอธิบาย ICR" onclick="toggleTooltip(this)">?</button>
+              <span class="tooltip-box" id="icrTooltip" role="tooltip">Insulin-to-Carb Ratio — คาร์บกี่กรัมต่ออินซูลิน 1 หน่วย เช่น ICR 15 หมายถึงคาร์บ 15 กรัมใช้อินซูลิน 1 หน่วย แพทย์เป็นผู้กำหนดค่านี้ให้คุณโดยเฉพาะ</span>
+            </div>
+            <input type="number" inputmode="decimal" id="icrInput" placeholder="เช่น 15" class="tabular-nums" aria-describedby="icrTooltip">
           </div>
           <div class="field">
             <label class="field-label" for="currentBgInput">น้ำตาลปัจจุบัน</label>
@@ -325,7 +355,9 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
         <ul class="history-entry-list" id="insulinHistoryList"></ul>
       </div>
 
-      <button class="btn-primary" onclick="printReport()">พิมพ์รายงานไปพบแพทย์</button>
+      <button class="btn-primary" id="pdfBtn" onclick="printReport()">ดาวน์โหลดรายงาน PDF</button>
+      <p class="result-footnote" id="pdfStatus" style="text-align:center;"></p>
+      <button class="btn-add" onclick="openInExternalBrowser()" style="margin-top:8px;">เปิดในเบราว์เซอร์ (ถ้าดาวน์โหลดไม่ได้)</button>
 
       <div id="printReport"></div>
     </div>
@@ -356,6 +388,14 @@ let todayLog = [];
 let selectedMeal = "เช้า";
 let selectedTiming = "fasting";
 
+// ====== วันที่ไทยวันนี้ ======
+const THAI_DAYS = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+const THAI_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+function renderThaiDate() {
+  const d = new Date();
+  document.getElementById('headerDate').textContent = `วัน${THAI_DAYS[d.getDay()]}ที่ ${d.getDate()} ${THAI_MONTHS[d.getMonth()]}`;
+}
+
 async function initLiff() {
   try {
     await liff.init({ liffId: LIFF_ID });
@@ -373,6 +413,19 @@ async function initLiff() {
 // ====== แท็บ ======
 let historyLoaded = false;
 let historyData = null;
+
+// ====== tooltip (ปุ่ม ?) ======
+function toggleTooltip(btn) {
+  const box = btn.nextElementSibling;
+  const isOpen = box.classList.contains('show');
+  document.querySelectorAll('.tooltip-box.show').forEach(t => t.classList.remove('show'));
+  if (!isOpen) box.classList.add('show');
+}
+document.addEventListener('click', (e) => {
+  if (!e.target.classList.contains('info-btn')) {
+    document.querySelectorAll('.tooltip-box.show').forEach(t => t.classList.remove('show'));
+  }
+});
 
 function switchTab(id, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => { p.hidden = true; p.classList.remove('active'); });
@@ -493,7 +546,7 @@ function renderInsulinHistory(data) {
   }).join('');
 }
 
-function printReport() {
+function buildReportContent() {
   const data = historyData || MOCK_HISTORY;
   const patientName = profile.displayName;
   const today = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -523,7 +576,49 @@ function printReport() {
     <table><tr><th>วันเวลา</th><th>ปริมาณ</th></tr>${insulinRows}</table>
     <p style="font-size:11px;font-style:italic;">รายงานนี้สร้างจากข้อมูลที่ผู้ป่วยบันทึกด้วยตนเองผ่านแอป ไม่ใช่การวินิจฉัยทางการแพทย์ กรุณาใช้ประกอบการปรึกษาแพทย์เท่านั้น</p>
   `;
-  window.print();
+}
+
+/**
+ * สร้าง PDF จริงในเครื่อง (html2canvas capture + jsPDF) แทนการใช้ window.print()
+ * เพราะ dialog พิมพ์ของเบราว์เซอร์มักใช้งานไม่ได้ใน in-app browser ของ LINE บนมือถือ
+ */
+function printReport() {
+  const statusEl = document.getElementById('pdfStatus');
+  const btn = document.getElementById('pdfBtn');
+  buildReportContent();
+
+  if (typeof html2pdf === 'undefined') {
+    statusEl.textContent = 'โหลดตัวสร้าง PDF ไม่สำเร็จ ลองกดปุ่ม "เปิดในเบราว์เซอร์" ด้านล่าง';
+    return;
+  }
+
+  statusEl.textContent = 'กำลังสร้าง PDF...';
+  btn.disabled = true;
+
+  const el = document.getElementById('printReport');
+  const opts = {
+    margin: 10,
+    filename: 'รายงานสุขภาพเบาหวาน.pdf',
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opts).from(el).save()
+    .then(() => { statusEl.textContent = 'ดาวน์โหลดแล้ว — เช็คโฟลเดอร์ดาวน์โหลดของเครื่อง'; })
+    .catch(() => { statusEl.textContent = 'ดาวน์โหลดไม่สำเร็จ ลองกดปุ่ม "เปิดในเบราว์เซอร์" ด้านล่างแล้วลองใหม่'; })
+    .finally(() => { btn.disabled = false; });
+}
+
+/**
+ * ทางเลือกสำรอง — เปิดหน้านี้ในเบราว์เซอร์ปกติของเครื่อง (Safari/Chrome) แทนที่จะอยู่ใน
+ * in-app browser ของ LINE เพราะการดาวน์โหลดไฟล์บางรุ่นเครื่อง/บางเวอร์ชัน LINE ยังมีข้อจำกัดอยู่
+ */
+function openInExternalBrowser() {
+  if (window.liff && liff.isInClient && liff.isInClient()) {
+    liff.openWindow({ url: window.location.href, external: true });
+  } else {
+    window.open(window.location.href, '_blank');
+  }
 }
 
 // ====== ระบบ 1: ตรวจน้ำตาล ======
@@ -795,6 +890,7 @@ async function saveInsulin(data) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+  renderThaiDate();
   populateFoodSelect();
   renderLog();
   updateRing();
