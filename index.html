@@ -117,9 +117,9 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
 .label-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; position: relative; }
 .label-row .field-label { margin-bottom: 0; }
 .info-btn { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--brand); background: var(--surface); color: var(--brand); font-size: 11px; font-weight: 700; line-height: 1; cursor: pointer; padding: 0; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.tooltip-box { display: none; position: absolute; top: 100%; left: 0; z-index: 20; margin-top: 6px; background: var(--ink); color: #fff; font-size: 12px; line-height: 1.6; padding: 10px 12px; border-radius: 10px; width: max(220px, 90%); box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
+.tooltip-box { display: none; position: absolute; top: 100%; left: 0; z-index: 20; margin-top: 6px; background: var(--brand); color: #fff; font-size: 12px; line-height: 1.6; padding: 10px 12px; border-radius: 10px; width: max(220px, 90%); box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
 .info-btn:hover + .tooltip-box, .info-btn:focus-visible + .tooltip-box { display: block; }
-.tooltip-box.show { display: block; }
+.tooltip-box.show { display： block; }
 
 /* ---------- result box (glucose + insulin) ---------- */
 .result-placeholder { font-size: 12.5px; color: var(--ink-soft); font-style: italic; margin-top: 14px; }
@@ -129,7 +129,7 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
 .result-box.good { background: var(--good-bg); border-color: var(--good); }
 .result-box.warn { background: var(--warn-bg); border-color: var(--warn); }
 .result-box.danger { background: var(--over-bg); border-color: var(--over); }
-.result-box.neutral { background: var(--brand-light); border-color: var(--brand); }
+.result-box.neutral { background： var(--brand-light); border-color: var(--brand); }
 .result-title { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 17px; margin-bottom: 8px; }
 .result-box.good .result-title { color: var(--good); }
 .result-box.warn .result-title { color: var(--warn); }
