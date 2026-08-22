@@ -28,9 +28,10 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); fo
 .tabular-nums { font-variant-numeric: tabular-nums; }
 
 .header { background: var(--brand); color: #fff; padding: 22px 20px calc(18px + env(safe-area-inset-top)); }
-.header-inner { max-width: 640px; margin: 0 auto; }
+.header-inner { max-width: 640px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .header h1 { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 21px; margin: 0 0 4px; }
 .header p { margin: 0; font-size: 13px; color: rgba(255,255,255,0.82); }
+.refresh-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; border-radius: 10px; padding: 8px 12px; font-size: 12px; cursor: pointer; flex-shrink: 0; }
 
 .content { max-width: 640px; margin: 0 auto; padding: 20px; }
 .state-msg { text-align: center; color: var(--ink-soft); font-size: 13.5px; padding: 40px 20px; }
@@ -44,6 +45,8 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); fo
 
 .demo-banner { display: flex; align-items: center; gap: 8px; background: var(--warn-bg); color: var(--warn); border: 1px solid #EFCB86; border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.5; margin-bottom: 16px; }
 .demo-banner svg { flex-shrink: 0; }
+.error-banner { background: var(--over-bg); border: 1px solid var(--over); color: var(--over); border-radius: 12px; padding: 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; }
+.error-banner button { margin-top: 10px; }
 
 .summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
 .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 10px; text-align: center; }
@@ -53,9 +56,9 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); fo
 .summary-label { font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; }
 
 .section-title { font-family: 'Kanit', sans-serif; font-weight: 500; font-size: 15px; margin: 0 0 12px; }
-.patient-row { border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px; margin-bottom: 10px; cursor: pointer; }
+.patient-row { border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px; margin-bottom: 10px; }
 .patient-row:last-child { margin-bottom: 0; }
-.patient-row-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.patient-row-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; cursor: pointer; }
 .patient-name { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 14px; }
 .patient-meta { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
 .status-badge { font-size: 11px; padding: 4px 10px; border-radius: 999px; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
@@ -66,14 +69,26 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); fo
 .patient-row.expanded .patient-entries { display: block; }
 .entry-row { display: flex; justify-content: space-between; font-size: 12.5px; padding: 4px 0; color: var(--ink-soft); }
 .entry-empty { font-size: 12.5px; color: var(--ink-soft); font-style: italic; }
+
+.edit-toggle { background: none; border: none; color: var(--brand); font-size: 12px; font-weight: 600; cursor: pointer; padding: 8px 0 0; }
+.edit-form { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.edit-form.open { display: block; }
+.edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.edit-grid label { font-size: 11px; color: var(--ink-soft); display: block; margin-bottom: 4px; }
+.edit-grid input { width: 100%; font-size: 13px; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); }
+.edit-save-btn { width: 100%; padding: 8px; border-radius: 8px; border: none; background: var(--brand); color: #fff; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.edit-status { font-size: 11.5px; color: var(--ink-soft); margin-top: 6px; text-align: center; }
 </style>
 </head>
 <body>
 
 <div class="header">
   <div class="header-inner">
-    <h1>หลังบ้านพยาบาล</h1>
-    <p>ภาพรวมน้ำตาล คาร์บ และอินซูลินของผู้ป่วยวันนี้</p>
+    <div>
+      <h1>หลังบ้านพยาบาล</h1>
+      <p>ภาพรวมน้ำตาล คาร์บ และอินซูลินของผู้ป่วยวันนี้</p>
+    </div>
+    <button type="button" class="refresh-btn" onclick="init()">รีเฟรช</button>
   </div>
 </div>
 
@@ -87,6 +102,14 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); fo
       <p class="sub">LINE User ID ของบัญชีนี้ยังไม่อยู่ในรายชื่อพยาบาล</p>
       <div class="id-box">User ID ของคุณ: <code id="yourUserId">-</code></div>
       <p class="hint">ส่ง ID นี้ให้ผู้ดูแลระบบ นำไปเพิ่มเป็นแถวใหม่ในชีท "Nurses" (คอลัมน์ LINE User ID + ชื่อ) แล้วเปิดหน้านี้ใหม่อีกครั้ง</p>
+    </div>
+  </div>
+
+  <div id="errorState" style="display:none">
+    <div class="error-banner">
+      <strong>⚠ โหลดข้อมูลไม่สำเร็จ</strong>
+      <p id="errorMsg" style="margin:6px 0 0;"></p>
+      <button type="button" class="refresh-btn" style="color:var(--over); border-color:var(--over); background:transparent;" onclick="init()">ลองใหม่</button>
     </div>
   </div>
 
@@ -117,55 +140,87 @@ const LIFF_ID = "2011121393-snPTo1BO";
 const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpclxW8jOqIqbLbUrSiftt4hzyxr5dtvhKjIAyL-vx74AgO_UP-zEk4/exec";
 
 const ACTIVITY_ICON = { carb: '🍚', glucose: '🩸', insulin: '💉' };
+let myIdToken = null;
+let autoRefreshTimer = null;
 
 const MOCK_DATA = {
   summary: { totalPatients: 6, loggedToday: 4, overTargetToday: 2, hypoToday: 1 },
   patients: [
-    { userId: 'demo1', name: 'สมชาย ใจดี', target: 200, todayCarbs: 235, hypoToday: false, activity: [
+    { userId: 'demo1', name: 'สมชาย ใจดี', target: 200, glucoseTarget: 120, isf: 50, icr: 15, todayCarbs: 235, hypoToday: false, activity: [
       { type: 'carb', label: 'เช้า · ข้าวสวย (1 ทัพพี)', value: '20 ก.' },
       { type: 'glucose', label: 'น้ำตาล (หลังอาหาร)', value: '210 mg/dL' },
       { type: 'insulin', label: 'คำนวณอินซูลิน', value: '4 หน่วย' },
     ]},
-    { userId: 'demo2', name: 'สมหญิง รักสุข', target: 180, todayCarbs: 90, hypoToday: true, activity: [
+    { userId: 'demo2', name: 'สมหญิง รักสุข', target: 180, glucoseTarget: '', isf: '', icr: '', todayCarbs: 90, hypoToday: true, activity: [
       { type: 'glucose', label: 'น้ำตาล (สุ่มตรวจ)', value: '58 mg/dL' },
       { type: 'carb', label: 'เช้า · ขนมปังแผ่น (1 แผ่น)', value: '13 ก.' },
     ]},
-    { userId: 'demo3', name: 'ประไพ แสงทอง', target: 220, todayCarbs: 0, hypoToday: false, activity: [] },
-    { userId: 'demo4', name: 'วิชัย ศรีสุข', target: 200, todayCarbs: 210, hypoToday: false, activity: [
+    { userId: 'demo3', name: 'ประไพ แสงทอง', target: 220, glucoseTarget: '', isf: '', icr: '', todayCarbs: 0, hypoToday: false, activity: [] },
+    { userId: 'demo4', name: 'วิชัย ศรีสุข', target: 200, glucoseTarget: 130, isf: 45, icr: 12, todayCarbs: 210, hypoToday: false, activity: [
       { type: 'carb', label: 'เย็น · ผัดไทย (1 จาน)', value: '55 ก.' },
       { type: 'glucose', label: 'น้ำตาล (ก่อนอาหาร)', value: '145 mg/dL' },
     ]},
-    { userId: 'demo5', name: 'มาลี บุญมาก', target: 190, todayCarbs: 150, hypoToday: false, activity: [
+    { userId: 'demo5', name: 'มาลี บุญมาก', target: 190, glucoseTarget: '', isf: '', icr: '', todayCarbs: 150, hypoToday: false, activity: [
       { type: 'carb', label: 'เที่ยง · กล้วยน้ำว้า (1 ผล)', value: '25 ก.' },
     ]},
-    { userId: 'demo6', name: 'สุรชัย ทองดี', target: 200, todayCarbs: 0, hypoToday: false, activity: [] },
+    { userId: 'demo6', name: 'สุรชัย ทองดี', target: 200, glucoseTarget: '', isf: '', icr: '', todayCarbs: 0, hypoToday: false, activity: [] },
   ]
 };
 
 async function init() {
-  try {
-    await liff.init({ liffId: LIFF_ID });
-    if (!liff.isLoggedIn()) { liff.login(); return; }
-    const idToken = liff.getIDToken();
-    if (!idToken || !GAS_WEB_APP_URL.startsWith('https://script.google.com/')) throw new Error('not configured');
+  document.getElementById('loadingState').style.display = 'block';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('deniedState').style.display = 'none';
+  document.getElementById('errorState').style.display = 'none';
 
-    const res = await fetch(`${GAS_WEB_APP_URL}?action=nurseData&idToken=${encodeURIComponent(idToken)}`);
+  if (!GAS_WEB_APP_URL.startsWith('https://script.google.com/')) {
+    showDashboard(MOCK_DATA, true);
+    scheduleAutoRefresh();
+    return;
+  }
+
+  try {
+    if (!myIdToken) {
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) { liff.login(); return; }
+      myIdToken = (liff.getIDToken && liff.getIDToken()) || null;
+    }
+    if (!myIdToken) throw new Error('ไม่พบข้อมูลยืนยันตัวตนจาก LINE');
+
+    const res = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ type: 'nurseData', idToken: myIdToken }),
+    });
     const data = await res.json();
 
     if (!data.authorized) {
-      showDenied(data.yourUserId);
-      return;
+      if (data.yourUserId) { showDenied(data.yourUserId); return; }
+      throw new Error(data.error || 'ไม่ผ่านการยืนยันตัวตน');
     }
     showDashboard(data, false);
+    scheduleAutoRefresh();
   } catch (err) {
-    showDashboard(MOCK_DATA, true);
+    // สำคัญ: ไม่ fallback ไปโชว์ข้อมูลสมมติเงียบๆ เพราะพยาบาลอาจเข้าใจผิดว่าเป็นข้อมูลผู้ป่วยจริง
+    showLoadError(err.message);
   }
+}
+
+function scheduleAutoRefresh() {
+  if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+  autoRefreshTimer = setInterval(init, 5 * 60 * 1000); // รีเฟรชอัตโนมัติทุก 5 นาที
 }
 
 function showDenied(yourUserId) {
   document.getElementById('loadingState').style.display = 'none';
   document.getElementById('deniedState').style.display = 'block';
   document.getElementById('yourUserId').textContent = yourUserId || '(ไม่พบ — ลองล็อกอินใหม่)';
+}
+
+function showLoadError(msg) {
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('errorState').style.display = 'block';
+  document.getElementById('errorMsg').textContent = msg || 'ไม่สามารถเชื่อมต่อกับระบบได้ ลองใหม่อีกครั้ง';
 }
 
 function showDashboard(data, isDemo) {
@@ -188,7 +243,7 @@ function showDashboard(data, isDemo) {
   };
   const sorted = [...data.patients].sort((a, b) => rank(a) - rank(b) || (a.name || '').localeCompare(b.name || '', 'th'));
 
-  document.getElementById('patientList').innerHTML = sorted.map(p => {
+  document.getElementById('patientList').innerHTML = sorted.map((p, idx) => {
     const over = p.todayCarbs > p.target;
     const logged = p.todayCarbs > 0;
     let status = 'none', label = 'ยังไม่บันทึก';
@@ -201,18 +256,61 @@ function showDashboard(data, isDemo) {
       ? activity.map(a => `<div class="entry-row"><span>${ACTIVITY_ICON[a.type] || '•'} ${a.label}</span><span class="tabular-nums">${a.value}</span></div>`).join('')
       : '<div class="entry-empty">ยังไม่มีรายการล่าสุด</div>';
 
+    const uid = 'p' + idx;
     return `
-      <div class="patient-row" onclick="this.classList.toggle('expanded')">
-        <div class="patient-row-top">
+      <div class="patient-row" id="row-${uid}">
+        <div class="patient-row-top" onclick="document.getElementById('row-${uid}').classList.toggle('expanded')">
           <div>
             <div class="patient-name">${p.name || 'ไม่ทราบชื่อ'}</div>
             <div class="patient-meta tabular-nums">${p.todayCarbs}/${p.target} กรัมคาร์บวันนี้</div>
           </div>
           <span class="status-badge ${status}">${label}</span>
         </div>
-        <div class="patient-entries">${entriesHtml}</div>
+        <div class="patient-entries">
+          ${entriesHtml}
+          <button type="button" class="edit-toggle" onclick="toggleEditForm('${uid}')">ตั้งค่า Target/ISF/ICR/เป้าหมายคาร์บ</button>
+          <div class="edit-form" id="edit-${uid}">
+            <div class="edit-grid">
+              <div><label>เป้าหมายคาร์บ/วัน</label><input type="number" id="editCarb-${uid}" value="${p.target || ''}"></div>
+              <div><label>เป้าหมายน้ำตาล</label><input type="number" id="editGlucose-${uid}" value="${p.glucoseTarget || ''}"></div>
+              <div><label>ISF</label><input type="number" id="editIsf-${uid}" value="${p.isf || ''}"></div>
+              <div><label>ICR</label><input type="number" id="editIcr-${uid}" value="${p.icr || ''}"></div>
+            </div>
+            <button type="button" class="edit-save-btn" onclick="saveSettings('${uid}', '${p.userId}')">บันทึกค่านี้ให้ผู้ป่วย</button>
+            <p class="edit-status" id="editStatus-${uid}"></p>
+          </div>
+        </div>
       </div>`;
   }).join('');
+}
+
+function toggleEditForm(uid) {
+  document.getElementById('edit-' + uid).classList.toggle('open');
+}
+
+async function saveSettings(uid, targetUserId) {
+  const statusEl = document.getElementById('editStatus-' + uid);
+  const carbTarget = document.getElementById('editCarb-' + uid).value;
+  const glucoseTarget = document.getElementById('editGlucose-' + uid).value;
+  const isf = document.getElementById('editIsf-' + uid).value;
+  const icr = document.getElementById('editIcr-' + uid).value;
+
+  if (!GAS_WEB_APP_URL.startsWith('https://script.google.com/') || !myIdToken) {
+    statusEl.textContent = 'โหมดทดสอบ — ยังไม่บันทึกเข้าระบบจริง';
+    return;
+  }
+  statusEl.textContent = 'กำลังบันทึก...';
+  try {
+    const res = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ type: 'updatePatientSettings', idToken: myIdToken, targetUserId, carbTarget, glucoseTarget, isf, icr }),
+    });
+    const result = await res.json();
+    statusEl.textContent = result.ok ? 'บันทึกแล้ว — ผู้ป่วยจะเห็นค่าใหม่ครั้งถัดไปที่เปิดแอป' : 'บันทึกไม่สำเร็จ: ' + (result.error || '');
+  } catch (err) {
+    statusEl.textContent = 'บันทึกไม่สำเร็จ (เชื่อมต่อไม่ได้)';
+  }
 }
 
 window.addEventListener('DOMContentLoaded', init);
