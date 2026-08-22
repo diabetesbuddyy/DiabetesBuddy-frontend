@@ -56,6 +56,12 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); fo
 .summary-label { font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; }
 
 .section-title { font-family: 'Kanit', sans-serif; font-weight: 500; font-size: 15px; margin: 0 0 12px; }
+.search-row { margin-bottom: 10px; }
+.search-row input { width: 100%; font-size: 14px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); font-family: 'Sarabun', sans-serif; }
+.filter-chips { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.filter-chip { font-family: 'Sarabun', sans-serif; font-size: 12px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--ink-soft); cursor: pointer; }
+.filter-chip.active { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 600; }
+.result-count { font-size: 11.5px; color: var(--ink-soft); margin: 0 0 10px; }
 .patient-row { border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px; margin-bottom: 10px; }
 .patient-row:last-child { margin-bottom: 0; }
 .patient-row-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; cursor: pointer; }
@@ -128,6 +134,16 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); fo
 
     <div class="card">
       <p class="section-title">รายชื่อผู้ป่วย</p>
+      <div class="search-row">
+        <input type="text" id="patientSearch" placeholder="ค้นหาชื่อผู้ป่วย..." oninput="renderPatientList()" aria-label="ค้นหาชื่อผู้ป่วย">
+      </div>
+      <div class="filter-chips" role="group" aria-label="กรองตามสถานะ">
+        <button type="button" class="filter-chip active" onclick="setFilter('all', this)">ทั้งหมด</button>
+        <button type="button" class="filter-chip" onclick="setFilter('hypo', this)">น้ำตาลต่ำ</button>
+        <button type="button" class="filter-chip" onclick="setFilter('over', this)">เกินเป้า</button>
+        <button type="button" class="filter-chip" onclick="setFilter('none', this)">ยังไม่บันทึก</button>
+      </div>
+      <p class="result-count" id="resultCount"></p>
       <div id="patientList"></div>
     </div>
   </div>
@@ -142,6 +158,8 @@ const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpc
 const ACTIVITY_ICON = { carb: '🍚', glucose: '🩸', insulin: '💉' };
 let myIdToken = null;
 let autoRefreshTimer = null;
+let allPatientsSorted = [];
+let currentFilter = 'all';
 
 const MOCK_DATA = {
   summary: { totalPatients: 6, loggedToday: 4, overTargetToday: 2, hypoToday: 1 },
@@ -241,47 +259,80 @@ function showDashboard(data, isDemo) {
     if (p.todayCarbs > 0) return 2;
     return 3;
   };
-  const sorted = [...data.patients].sort((a, b) => rank(a) - rank(b) || (a.name || '').localeCompare(b.name || '', 'th'));
+  allPatientsSorted = [...data.patients].sort((a, b) => rank(a) - rank(b) || (a.name || '').localeCompare(b.name || '', 'th'));
 
-  document.getElementById('patientList').innerHTML = sorted.map((p, idx) => {
-    const over = p.todayCarbs > p.target;
-    const logged = p.todayCarbs > 0;
-    let status = 'none', label = 'ยังไม่บันทึก';
-    if (p.hypoToday) { status = 'warn'; label = '⚠ น้ำตาลต่ำ'; }
-    else if (over) { status = 'warn'; label = 'เกินเป้า'; }
-    else if (logged) { status = 'good'; label = 'ปกติ'; }
+  renderPatientList();
+}
 
-    const activity = p.activity || [];
-    const entriesHtml = activity.length
-      ? activity.map(a => `<div class="entry-row"><span>${ACTIVITY_ICON[a.type] || '•'} ${a.label}</span><span class="tabular-nums">${a.value}</span></div>`).join('')
-      : '<div class="entry-empty">ยังไม่มีรายการล่าสุด</div>';
+function patientStatus(p) {
+  if (p.hypoToday) return 'hypo';
+  if (p.todayCarbs > p.target) return 'over';
+  if (p.todayCarbs > 0) return 'logged';
+  return 'none';
+}
 
-    const uid = 'p' + idx;
-    return `
-      <div class="patient-row" id="row-${uid}">
-        <div class="patient-row-top" onclick="document.getElementById('row-${uid}').classList.toggle('expanded')">
-          <div>
-            <div class="patient-name">${p.name || 'ไม่ทราบชื่อ'}</div>
-            <div class="patient-meta tabular-nums">${p.todayCarbs}/${p.target} กรัมคาร์บวันนี้</div>
-          </div>
-          <span class="status-badge ${status}">${label}</span>
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderPatientList();
+}
+
+function renderPatientList() {
+  const searchText = (document.getElementById('patientSearch').value || '').trim().toLowerCase();
+
+  const filtered = allPatientsSorted.filter(p => {
+    const status = patientStatus(p);
+    if (currentFilter !== 'all' && status !== currentFilter) return false;
+    if (searchText && !(p.name || '').toLowerCase().includes(searchText)) return false;
+    return true;
+  });
+
+  document.getElementById('resultCount').textContent = `แสดง ${filtered.length} จาก ${allPatientsSorted.length} คน`;
+
+  if (filtered.length === 0) {
+    document.getElementById('patientList').innerHTML = '<p class="entry-empty" style="padding:12px 0;">ไม่พบผู้ป่วยที่ตรงเงื่อนไข</p>';
+    return;
+  }
+
+  document.getElementById('patientList').innerHTML = filtered.map((p, i) => renderPatientRow(p, i)).join('');
+}
+
+function renderPatientRow(p, idx) {
+  const status = patientStatus(p);
+  const statusClass = (status === 'hypo' || status === 'over') ? 'warn' : (status === 'logged' ? 'good' : 'none');
+  const label = status === 'hypo' ? '⚠ น้ำตาลต่ำ' : status === 'over' ? 'เกินเป้า' : status === 'logged' ? 'ปกติ' : 'ยังไม่บันทึก';
+
+  const activity = p.activity || [];
+  const entriesHtml = activity.length
+    ? activity.map(a => `<div class="entry-row"><span>${ACTIVITY_ICON[a.type] || '•'} ${a.label}</span><span class="tabular-nums">${a.value}</span></div>`).join('')
+    : '<div class="entry-empty">ยังไม่มีรายการล่าสุด</div>';
+
+  const uid = 'p' + idx;
+  return `
+    <div class="patient-row" id="row-${uid}">
+      <div class="patient-row-top" onclick="document.getElementById('row-${uid}').classList.toggle('expanded')">
+        <div>
+          <div class="patient-name">${p.name || 'ไม่ทราบชื่อ'}</div>
+          <div class="patient-meta tabular-nums">${p.todayCarbs}/${p.target} กรัมคาร์บวันนี้</div>
         </div>
-        <div class="patient-entries">
-          ${entriesHtml}
-          <button type="button" class="edit-toggle" onclick="toggleEditForm('${uid}')">ตั้งค่า Target/ISF/ICR/เป้าหมายคาร์บ</button>
-          <div class="edit-form" id="edit-${uid}">
-            <div class="edit-grid">
-              <div><label>เป้าหมายคาร์บ/วัน</label><input type="number" id="editCarb-${uid}" value="${p.target || ''}"></div>
-              <div><label>เป้าหมายน้ำตาล</label><input type="number" id="editGlucose-${uid}" value="${p.glucoseTarget || ''}"></div>
-              <div><label>ISF</label><input type="number" id="editIsf-${uid}" value="${p.isf || ''}"></div>
-              <div><label>ICR</label><input type="number" id="editIcr-${uid}" value="${p.icr || ''}"></div>
-            </div>
-            <button type="button" class="edit-save-btn" onclick="saveSettings('${uid}', '${p.userId}')">บันทึกค่านี้ให้ผู้ป่วย</button>
-            <p class="edit-status" id="editStatus-${uid}"></p>
+        <span class="status-badge ${statusClass}">${label}</span>
+      </div>
+      <div class="patient-entries">
+        ${entriesHtml}
+        <button type="button" class="edit-toggle" onclick="toggleEditForm('${uid}')">ตั้งค่า Target/ISF/ICR/เป้าหมายคาร์บ</button>
+        <div class="edit-form" id="edit-${uid}">
+          <div class="edit-grid">
+            <div><label>เป้าหมายคาร์บ/วัน</label><input type="number" id="editCarb-${uid}" value="${p.target || ''}"></div>
+            <div><label>เป้าหมายน้ำตาล</label><input type="number" id="editGlucose-${uid}" value="${p.glucoseTarget || ''}"></div>
+            <div><label>ISF</label><input type="number" id="editIsf-${uid}" value="${p.isf || ''}"></div>
+            <div><label>ICR</label><input type="number" id="editIcr-${uid}" value="${p.icr || ''}"></div>
           </div>
+          <button type="button" class="edit-save-btn" onclick="saveSettings('${uid}', '${p.userId}')">บันทึกค่านี้ให้ผู้ป่วย</button>
+          <p class="edit-status" id="editStatus-${uid}"></p>
         </div>
-      </div>`;
-  }).join('');
+      </div>
+    </div>`;
 }
 
 function toggleEditForm(uid) {
