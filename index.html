@@ -28,14 +28,13 @@
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #284431; --surface: #242B26; --ink: #EDEFE9; --ink-soft: #A2AA9F;
+    --bg: #1B211D; --surface: #242B26; --ink: #EDEFE9; --ink-soft: #A2AA9F;
     --brand: #7FB09A; --brand-light: #2C3830; --border: #38423C;
     --good-bg: #1F3021; --warn-bg: #3A2E14; --over-bg: #3A211D;
   }
 }
 html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: 'Sarabun', sans-serif; -webkit-font-smoothing: antialiased; }
 
-/* ---------- accessibility base ---------- */
 :focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
 .skip-link { position: absolute; left: 8px; top: -60px; z-index: 100; background: var(--brand); color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; transition: top 0.2s ease; }
 .skip-link:focus { top: 8px; }
@@ -43,13 +42,12 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); fo
 
 .app { max-width: 480px; margin: 0 auto; padding: 20px 16px calc(40px + env(safe-area-inset-bottom)); }
 .header { margin-bottom: 16px; }
-.header h1 { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 30px; margin: 0; color: var(--ink); }
+.header h1 { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 20px; margin: 0; color: var(--brand); }
 .header-date { font-size: 12.5px; color: var(--ink-soft); margin-top: 4px; }
 .greeting { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
 .demo-banner { display: flex; align-items: center; gap: 8px; background: var(--brand-light); color: var(--brand); border-radius: 10px; padding: 10px 12px; font-size: 12px; margin-bottom: 16px; line-height: 1.5; }
 .demo-banner svg { flex-shrink: 0; }
 
-/* ---------- tabs ---------- */
 .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
 .tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); color: var(--ink-soft); font-family: 'Sarabun', sans-serif; font-size: 12px; cursor: pointer; }
 .tab-icon { font-size: 19px; line-height: 1; }
@@ -76,7 +74,6 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); fo
 .meal-chip { font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--ink-soft); cursor: pointer; }
 .meal-chip.active { background: var(--brand); border-color: var(--brand); color: #fff; }
 
-/* ตรวจน้ำตาล: ปุ่มช่วงเวลาใหญ่ขึ้น มีอีโมจิ — แนวตั้งเมื่อจอแคบ แนวนอนเมื่อจอกว้าง */
 .timing-chips { flex-direction: column; flex-wrap: nowrap; gap: 10px; }
 .timing-chips .meal-chip { display: flex; align-items: center; gap: 12px; padding: 14px 16px; font-size: 15px; border-radius: 12px; justify-content: flex-start; text-align: left; }
 .timing-chips .chip-icon { font-size: 22px; line-height: 1; flex-shrink: 0; }
@@ -85,7 +82,9 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); fo
   .timing-chips .meal-chip { flex: 1; flex-direction: column; justify-content: center; text-align: center; gap: 6px; padding: 14px 8px; }
   .timing-chips .chip-icon { font-size: 24px; }
 }
+
 select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); width: 100%; }
+input[readonly] { background: var(--brand-light); color: var(--ink-soft); }
 .qty-row { display: flex; align-items: center; gap: 10px; }
 .qty-btn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--brand); font-size: 18px; cursor: pointer; flex-shrink: 0; }
 .qty-row input { text-align: center; width: 56px; flex-shrink: 0; }
@@ -94,6 +93,11 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
 .btn-add { width: 100%; padding: 12px; border-radius: 10px; border: none; background: var(--brand-light); color: var(--brand); font-family: 'Sarabun', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; }
 .btn-primary { width: 100%; padding: 13px; border-radius: 10px; border: none; background: var(--brand); color: #fff; font-family: 'Sarabun', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; }
 .btn-primary:disabled { opacity: 0.6; }
+
+.sync-pending { color: var(--warn); font-size: 8px; vertical-align: middle; }
+.sync-banner { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--warn-bg); border: 1px solid #EFCB86; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 12.5px; color: #8A5A12; }
+.sync-banner button { flex-shrink: 0; width: auto; padding: 6px 12px; margin: 0; }
+
 .log-list { list-style: none; padding: 0; margin: 0; }
 .log-item { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
 .log-item:last-child { border-bottom: none; }
@@ -101,6 +105,7 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
 .log-food { flex: 1; }
 .log-carbs { color: var(--ink-soft); flex-shrink: 0; }
 .log-del { background: none; border: none; color: var(--ink-soft); cursor: pointer; font-size: 15px; padding: 4px; line-height: 1; }
+.log-del:disabled { opacity: 0.25; cursor: not-allowed; }
 .log-empty { color: var(--ink-soft); font-size: 13px; padding: 8px 0; }
 .edu-toggle { display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: none; border: none; width: 100%; padding: 0; font-family: 'Kanit', sans-serif; font-weight: 500; font-size: 15px; color: var(--ink); }
 .edu-chevron { transition: transform 0.2s ease; color: var(--brand); flex-shrink: 0; }
@@ -108,20 +113,19 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
 .edu-content p { margin: 12px 0 0; }
 .edu-note { font-size: 11px; font-style: italic; margin-top: 10px; }
 
-/* ---------- warn box (insulin disclaimer) ---------- */
 .warn-box { display: flex; gap: 10px; background: var(--warn-bg); border: 1px solid #EFCB86; border-radius: 12px; padding: 14px; margin-bottom: 18px; font-size: 12.5px; color: #8A5A12; line-height: 1.6; }
 .warn-box svg { flex-shrink: 0; margin-top: 2px; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
-/* ---------- tooltip (info "?" buttons) ---------- */
 .label-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; position: relative; }
 .label-row .field-label { margin-bottom: 0; }
 .info-btn { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--brand); background: var(--surface); color: var(--brand); font-size: 11px; font-weight: 700; line-height: 1; cursor: pointer; padding: 0; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.tooltip-box { display: none; position: absolute; top: 100%; left: 0; z-index: 20; margin-top: 6px; background: var(--brand); color: #fff; font-size: 12px; line-height: 1.6; padding: 10px 12px; border-radius: 10px; width: max(220px, 90%); box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
+.tooltip-box { display: none; position: absolute; top: 100%; left: 0; z-index: 20; margin-top: 6px; background: var(--ink); color: #fff; font-size: 12px; line-height: 1.6; padding: 10px 12px; border-radius: 10px; width: max(220px, 90%); box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
 .info-btn:hover + .tooltip-box, .info-btn:focus-visible + .tooltip-box { display: block; }
-.tooltip-box.show { display： block; }
+.tooltip-box.show { display: block; }
 
-/* ---------- result box (glucose + insulin) ---------- */
+.settings-notice { font-size: 12px; color: var(--ink-soft); background: var(--brand-light); border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; line-height: 1.6; }
+
 .result-placeholder { font-size: 12.5px; color: var(--ink-soft); font-style: italic; margin-top: 14px; }
 .result-box { display: none; margin-top: 16px; padding: 18px; border-radius: 14px; border: 2px solid; text-align: center; }
 .result-box.reveal { animation: reveal-in 0.3s ease-out; }
@@ -129,7 +133,7 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
 .result-box.good { background: var(--good-bg); border-color: var(--good); }
 .result-box.warn { background: var(--warn-bg); border-color: var(--warn); }
 .result-box.danger { background: var(--over-bg); border-color: var(--over); }
-.result-box.neutral { background： var(--brand-light); border-color: var(--brand); }
+.result-box.neutral { background: var(--brand-light); border-color: var(--brand); }
 .result-title { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 17px; margin-bottom: 8px; }
 .result-box.good .result-title { color: var(--good); }
 .result-box.warn .result-title { color: var(--warn); }
@@ -144,12 +148,8 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
 .flash-danger { animation: gentle-flash 1.4s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .flash-danger { animation: none; background-color: var(--over-bg); } }
 
-/* ---------- history charts ---------- */
 #glucoseChart svg, #carbChart svg { display: block; }
 .history-entry-list { list-style: none; padding: 0; margin: 0; }
-
-/* ---------- report captured by html2pdf ---------- */
-/* วางไว้นอกจอ (ไม่ใช่ display:none) เพราะ html2canvas ต้องเห็น layout จริงถึงจะ capture ได้ */
 #printReport { position: absolute; left: -9999px; top: 0; width: 700px; background: #fff; padding: 24px; color: #1a1a1a; }
 #printReport table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 13px; font-family: 'Sarabun', sans-serif; }
 #printReport th, #printReport td { border: 1px solid #999; padding: 6px 10px; text-align: left; }
@@ -218,7 +218,7 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
       </div>
     </div>
 
-    <!-- ===================== PANEL: CARB (เดิม) ===================== -->
+    <!-- ===================== PANEL: CARB ===================== -->
     <div role="tabpanel" id="panel-carb" aria-labelledby="tab-carb" tabindex="0" class="tab-panel" hidden>
 
       <div class="card ring-card">
@@ -260,15 +260,17 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
         </div>
         <div class="preview tabular-nums" id="carbPreview" aria-live="polite">≈ 0 กรัมคาร์บ</div>
         <div class="error-msg" id="formError" role="alert"></div>
-        <button class="btn-add" onclick="addEntry()">+ เพิ่มรายการ</button>
+        <button class="btn-add" onclick="addEntry()">+ เพิ่มรายการ (บันทึกอัตโนมัติทันที)</button>
       </div>
 
       <div class="card">
         <p class="section-title">รายการวันนี้</p>
+        <div class="sync-banner" id="syncBanner" style="display:none;">
+          <span></span>
+          <button type="button" class="btn-add" onclick="syncAllPending()">ลองซิงค์อีกครั้ง</button>
+        </div>
         <ul class="log-list" id="logList"></ul>
       </div>
-
-      <button class="btn-primary" id="saveBtn" onclick="saveToday()">บันทึกข้อมูล</button>
 
       <div class="card" style="margin-top:16px;">
         <button class="edu-toggle" onclick="toggleEducation()" aria-expanded="false" aria-controls="eduContent">
@@ -290,15 +292,17 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
 
         <div class="warn-box">
           <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M8 1.5l7 12.5H1L8 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 6v3.5M8 11.5v.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-          <span>เป็นเพียงการประมาณค่า ไม่ใช่คำแนะนำทางการแพทย์ ค่า Target, ISF และ ICR ควรได้รับจากแพทย์หรือทีมดูแลผู้ป่วยเบาหวานของคุณเท่านั้น ห้ามเดาหรือเปลี่ยนค่าเหล่านี้เอง</span>
+          <span>เป็นเพียงการประมาณค่า ไม่ใช่คำแนะนำทางการแพทย์ ค่า Target, ISF และ ICR ควรได้รับจากแพทย์หรือทีมดูแลผู้ป่วยเบาหวานของคุณเท่านั้น</span>
         </div>
+
+        <div class="settings-notice" id="insulinSettingsNotice" style="display:none;"></div>
 
         <div class="grid-2">
           <div class="field">
             <div class="label-row">
               <label class="field-label" for="targetInput">เป้าหมายน้ำตาล</label>
               <button type="button" class="info-btn" aria-label="คำอธิบายเป้าหมายน้ำตาล" onclick="toggleTooltip(this)">?</button>
-              <span class="tooltip-box" id="targetTooltip" role="tooltip">ระดับน้ำตาลในเลือดที่แพทย์ตั้งเป้าให้คุณ (mg/dL) ใช้เป็นค่าฐานตอนคำนวณโดสแก้ไข กรอกค่าที่แพทย์กำหนดให้คุณโดยเฉพาะเท่านั้น</span>
+              <span class="tooltip-box" id="targetTooltip" role="tooltip">ระดับน้ำตาลในเลือดที่แพทย์ตั้งเป้าให้คุณ (mg/dL) ใช้เป็นค่าฐานตอนคำนวณโดสแก้ไข</span>
             </div>
             <input type="number" inputmode="decimal" id="targetInput" placeholder="เช่น 120" class="tabular-nums" aria-describedby="targetTooltip">
           </div>
@@ -306,7 +310,7 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
             <div class="label-row">
               <label class="field-label" for="isfInput">ISF</label>
               <button type="button" class="info-btn" aria-label="คำอธิบาย ISF" onclick="toggleTooltip(this)">?</button>
-              <span class="tooltip-box" id="isfTooltip" role="tooltip">Insulin Sensitivity Factor — อินซูลิน 1 หน่วยลดน้ำตาลได้กี่ mg/dL เช่น ISF 50 หมายถึง 1 หน่วยลดน้ำตาลได้ ~50 mg/dL แพทย์เป็นผู้กำหนดค่านี้ให้คุณโดยเฉพาะ</span>
+              <span class="tooltip-box" id="isfTooltip" role="tooltip">Insulin Sensitivity Factor — อินซูลิน 1 หน่วยลดน้ำตาลได้กี่ mg/dL เช่น ISF 50 หมายถึง 1 หน่วยลดน้ำตาลได้ ~50 mg/dL</span>
             </div>
             <input type="number" inputmode="decimal" id="isfInput" placeholder="เช่น 50" class="tabular-nums" aria-describedby="isfTooltip">
           </div>
@@ -314,7 +318,7 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
             <div class="label-row">
               <label class="field-label" for="icrInput">ICR</label>
               <button type="button" class="info-btn" aria-label="คำอธิบาย ICR" onclick="toggleTooltip(this)">?</button>
-              <span class="tooltip-box" id="icrTooltip" role="tooltip">Insulin-to-Carb Ratio — คาร์บกี่กรัมต่ออินซูลิน 1 หน่วย เช่น ICR 15 หมายถึงคาร์บ 15 กรัมใช้อินซูลิน 1 หน่วย แพทย์เป็นผู้กำหนดค่านี้ให้คุณโดยเฉพาะ</span>
+              <span class="tooltip-box" id="icrTooltip" role="tooltip">Insulin-to-Carb Ratio — คาร์บกี่กรัมต่ออินซูลิน 1 หน่วย เช่น ICR 15 หมายถึงคาร์บ 15 กรัมใช้อินซูลิน 1 หน่วย</span>
             </div>
             <input type="number" inputmode="decimal" id="icrInput" placeholder="เช่น 15" class="tabular-nums" aria-describedby="icrTooltip">
           </div>
@@ -328,6 +332,16 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
           <input type="number" inputmode="decimal" id="mealCarbInput" placeholder="เช่น 45" class="tabular-nums">
         </div>
 
+        <button type="button" class="btn-add" id="unlockBtn" onclick="unlockInsulinFields()" style="display:none;">แก้ไขค่า Target/ISF/ICR</button>
+        <div id="unlockConfirm" class="warn-box" style="display:none;">
+          <span>ค่านี้พยาบาลตั้งไว้ให้คุณโดยเฉพาะ แก้ไขเองอาจทำให้คำนวณโดสผิดพลาดได้
+            <div style="margin-top:10px; display:flex; gap:8px;">
+              <button type="button" class="btn-add" style="margin:0;" onclick="confirmUnlock()">ยืนยันแก้ไข</button>
+              <button type="button" class="btn-add" style="margin:0;" onclick="cancelUnlock()">ยกเลิก</button>
+            </div>
+          </span>
+        </div>
+
         <div class="error-msg" id="insulinError" role="alert"></div>
         <button class="btn-primary" onclick="calcInsulin()">คำนวณปริมาณอินซูลิน</button>
 
@@ -338,6 +352,16 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
 
     <!-- ===================== PANEL: HISTORY ===================== -->
     <div role="tabpanel" id="panel-history" aria-labelledby="tab-history" tabindex="0" class="tab-panel" hidden>
+      <div class="demo-banner" id="historyDemoNotice" style="display:none;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5l7 12.5H1L8 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 6v3.5M8 11.5v.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        <span>โหมดทดสอบ — ยังไม่เชื่อมกับ backend จริง กำลังแสดงข้อมูลสมมติ</span>
+      </div>
+      <div class="result-box danger" id="historyErrorNotice" style="display:none;" role="alert">
+        <div class="result-title">⚠ โหลดข้อมูลไม่สำเร็จ</div>
+        <div class="result-message" id="historyErrorMsg"></div>
+        <button type="button" class="btn-add" style="margin-top:12px;" onclick="loadHistory()">ลองใหม่</button>
+      </div>
+
       <div class="card">
         <p class="section-title">แนวโน้มน้ำตาลในเลือด</p>
         <p class="sub">14 วันล่าสุด · เส้นประคือช่วงอ้างอิง 70 และ 180 mg/dL</p>
@@ -369,9 +393,8 @@ select, input[type=number] { font-family: 'Sarabun', sans-serif; font-size: 14px
 // ====== ตั้งค่า — แก้ 2 ค่านี้หลังจากได้ LIFF ID และ Apps Script Web App URL จริง ======
 const LIFF_ID = "2011121393-V8xdJQ6r";
 const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpclxW8jOqIqbLbUrSiftt4hzyxr5dtvhKjIAyL-vx74AgO_UP-zEk4/exec";
-const DAILY_TARGET_G = 200; // เป้าหมายคาร์บ/วัน (ตัวอย่าง — ทีหลังควรดึงมาจาก Sheet ต่อผู้ป่วยแต่ละคน)
+let DAILY_TARGET_G = 200; // ค่าเริ่มต้นก่อนดึงเป้าหมายจริงของผู้ป่วยแต่ละคนจาก backend
 
-// ====== ฐานข้อมูลอาหารตัวอย่าง — ค่าคาร์บเป็นค่าประมาณสำหรับทดสอบ UI เท่านั้น ======
 const FOOD_DB = [
   { name: "ข้าวสวย (1 ทัพพี)", carbs: 20 },
   { name: "ข้าวเหนียว (1 ก้อนเล็ก)", carbs: 23 },
@@ -384,9 +407,11 @@ const FOOD_DB = [
 ];
 
 let profile = { userId: null, displayName: "ผู้ป่วยทดสอบ" };
+let myIdToken = null;
 let todayLog = [];
 let selectedMeal = "เช้า";
 let selectedTiming = "fasting";
+let insulinLocked = false;
 
 // ====== วันที่ไทยวันนี้ ======
 const THAI_DAYS = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
@@ -396,6 +421,7 @@ function renderThaiDate() {
   document.getElementById('headerDate').textContent = `วัน${THAI_DAYS[d.getDay()]}ที่ ${d.getDate()} ${THAI_MONTHS[d.getMonth()]}`;
 }
 
+// ====== LIFF init + โหลดค่าตั้งค่าเฉพาะบุคคล ======
 async function initLiff() {
   try {
     await liff.init({ liffId: LIFF_ID });
@@ -403,16 +429,95 @@ async function initLiff() {
     const p = await liff.getProfile();
     profile.userId = p.userId;
     profile.displayName = p.displayName;
+    myIdToken = (liff.getIDToken && liff.getIDToken()) || null;
     document.getElementById('demoBanner').style.display = 'none';
+    await fetchMySettings();
   } catch (err) {
-    // ยังไม่ได้ตั้ง LIFF_ID จริง หรือเปิดนอกแอป LINE — ใช้โหมดทดสอบแทน
+    // ยังไม่ได้ตั้ง LIFF_ID จริง หรือเปิดนอกแอป LINE — โหมดทดสอบ
+    applyInsulinSettings(null);
   }
   document.getElementById('patientName').textContent = profile.displayName;
+}
+
+async function fetchMySettings() {
+  if (!GAS_WEB_APP_URL.startsWith('https://script.google.com/') || !myIdToken) {
+    applyInsulinSettings(null);
+    return;
+  }
+  try {
+    const res = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ type: 'mySettings', idToken: myIdToken }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      DAILY_TARGET_G = data.carbTarget || 200;
+      updateRing();
+      applyInsulinSettings(data);
+    } else {
+      applyInsulinSettings(null);
+    }
+  } catch (err) {
+    applyInsulinSettings(null);
+  }
+}
+
+function applyInsulinSettings(settings) {
+  const notice = document.getElementById('insulinSettingsNotice');
+  const unlockBtn = document.getElementById('unlockBtn');
+  const fields = ['targetInput', 'isfInput', 'icrInput'].map(id => document.getElementById(id));
+
+  if (settings && settings.configured) {
+    document.getElementById('targetInput').value = settings.glucoseTarget;
+    document.getElementById('isfInput').value = settings.isf;
+    document.getElementById('icrInput').value = settings.icr;
+    fields.forEach(f => f.readOnly = true);
+    insulinLocked = true;
+    notice.style.display = 'block';
+    notice.textContent = 'ค่า Target/ISF/ICR ตั้งโดยพยาบาลของคุณแล้ว (ล็อกไว้ป้องกันพิมพ์ผิด) กด "แก้ไขค่า" ด้านล่างถ้าจำเป็นต้องเปลี่ยน';
+    unlockBtn.style.display = 'block';
+  } else {
+    fields.forEach(f => f.readOnly = false);
+    insulinLocked = false;
+    notice.style.display = 'block';
+    notice.textContent = 'ยังไม่มีการตั้งค่า Target/ISF/ICR จากพยาบาลในระบบ กรอกด้วยตนเองตามที่แพทย์แจ้งไว้ หรือติดต่อพยาบาลให้ตั้งค่าให้';
+    unlockBtn.style.display = 'none';
+  }
+}
+
+function unlockInsulinFields() {
+  document.getElementById('unlockConfirm').style.display = 'block';
+  document.getElementById('unlockBtn').style.display = 'none';
+}
+function confirmUnlock() {
+  ['targetInput', 'isfInput', 'icrInput'].forEach(id => document.getElementById(id).readOnly = false);
+  document.getElementById('unlockConfirm').style.display = 'none';
+  document.getElementById('insulinSettingsNotice').textContent = 'คุณแก้ไขค่าที่พยาบาลตั้งไว้แล้ว ระบบจะบันทึกไว้ให้พยาบาลตรวจสอบเมื่อคำนวณ';
+}
+function cancelUnlock() {
+  document.getElementById('unlockConfirm').style.display = 'none';
+  document.getElementById('unlockBtn').style.display = 'block';
 }
 
 // ====== แท็บ ======
 let historyLoaded = false;
 let historyData = null;
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => { p.hidden = true; p.classList.remove('active'); });
+  const panel = document.getElementById('panel-' + id);
+  panel.hidden = false;
+  panel.classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+  btn.classList.add('active');
+  btn.setAttribute('aria-selected', 'true');
+
+  if (id === 'history' && !historyLoaded) {
+    historyLoaded = true;
+    loadHistory();
+  }
+}
 
 // ====== tooltip (ปุ่ม ?) ======
 function toggleTooltip(btn) {
@@ -427,18 +532,284 @@ document.addEventListener('click', (e) => {
   }
 });
 
-function switchTab(id, btn) {
-  document.querySelectorAll('.tab-panel').forEach(p => { p.hidden = true; p.classList.remove('active'); });
-  const panel = document.getElementById('panel-' + id);
-  panel.hidden = false;
-  panel.classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
-  btn.classList.add('active');
-  btn.setAttribute('aria-selected', 'true');
+// ====== ระบบ 1: ตรวจน้ำตาล ======
+const GLUCOSE_RANGES = {
+  fasting: [{ max: 130, level: 'normal' }, { max: 180, level: 'high' }, { max: Infinity, level: 'very-high' }],
+  postmeal: [{ max: 180, level: 'normal' }, { max: 250, level: 'high' }, { max: Infinity, level: 'very-high' }],
+  emergency: [{ max: 180, level: 'normal' }, { max: 250, level: 'high' }, { max: Infinity, level: 'very-high' }],
+};
+const GLUCOSE_LABELS = { normal: 'ปกติ', high: 'สูงกว่าเกณฑ์', 'very-high': 'สูงมาก' };
 
-  if (id === 'history' && !historyLoaded) {
-    historyLoaded = true;
-    loadHistory();
+function selectTiming(t, btn) {
+  selectedTiming = t;
+  btn.parentElement.querySelectorAll('.meal-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+async function analyzeGlucose() {
+  const el = document.getElementById('glucoseError');
+  const value = parseFloat(document.getElementById('glucoseInput').value);
+  if (!value || value <= 0) { el.textContent = 'กรอกค่าน้ำตาลในเลือดก่อนนะ'; el.style.display = 'block'; return; }
+  el.style.display = 'none';
+
+  const box = document.getElementById('glucoseResult');
+  document.getElementById('glucosePlaceholder').style.display = 'none';
+  box.classList.remove('flash-danger');
+  box.removeAttribute('role');
+
+  let level, cls, title, message;
+  const timingLabel = { fasting: 'ก่อนอาหาร', postmeal: 'หลังอาหาร', emergency: 'สุ่มตรวจ' }[selectedTiming];
+
+  if (value < 70) {
+    level = 'danger'; cls = 'danger';
+    title = `อันตราย! ภาวะน้ำตาลในเลือดต่ำ (${value} mg/dL)`;
+    message = 'ดื่มน้ำหวานครึ่งแก้ว หรือทานลูกอมทันที หากอาการไม่ดีขึ้นภายใน 15 นาที หรือไม่สามารถกินดื่มได้อย่างปลอดภัย ให้ขอความช่วยเหลือฉุกเฉินทันที';
+  } else {
+    const table = GLUCOSE_RANGES[selectedTiming] || GLUCOSE_RANGES.postmeal;
+    const band = table.find(b => value <= b.max);
+    level = band.level;
+    title = `${GLUCOSE_LABELS[band.level]} (${value} mg/dL, ${timingLabel})`;
+    if (band.level === 'normal') { message = 'ค่านี้อยู่ในเกณฑ์ปกติ รักษาสุขภาพและกิจวัตรที่ดีต่อไป'; cls = 'good'; }
+    else if (band.level === 'high') { message = 'ค่านี้สูงกว่าเกณฑ์ปกติ ลองทบทวนมื้ออาหารที่ผ่านมา และตรวจซ้ำอีกครั้งในภายหลัง'; cls = 'warn'; }
+    else {
+      cls = 'danger';
+      message = selectedTiming === 'emergency'
+        ? 'ค่านี้สูงมาก ควรไปพบแพทย์โดยเร็ว โดยเฉพาะหากมีอาการสับสน กระหายน้ำมาก คลื่นไส้ หรือหายใจลำบาก'
+        : 'ค่านี้สูงมาก กรุณาติดต่อแพทย์หรือทีมดูแลของคุณ';
+    }
+  }
+
+  box.className = `result-box ${cls} reveal`;
+  box.style.display = 'block';
+  if (level === 'danger') box.setAttribute('role', 'alert');
+  box.innerHTML = `<div class="result-title tabular-nums">${title}</div><div class="result-message">${message}</div><div class="result-footnote" id="glucoseSaveStatus">กำลังบันทึก...</div>`;
+  if (level === 'danger') box.classList.add('flash-danger');
+
+  saveGlucose(value, selectedTiming, level);
+}
+
+async function saveGlucose(value, timing, level) {
+  const statusEl = document.getElementById('glucoseSaveStatus');
+  if (!GAS_WEB_APP_URL.startsWith('https://script.google.com/') || !myIdToken) {
+    if (statusEl) statusEl.textContent = 'โหมดทดสอบ — ยังไม่บันทึกเข้าระบบจริง';
+    return;
+  }
+  try {
+    const res = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ type: 'glucose', idToken: myIdToken, displayName: profile.displayName, value, timing, level }),
+    });
+    const result = await res.json();
+    if (statusEl) statusEl.textContent = result.ok ? 'บันทึกเข้าระบบแล้ว' : 'บันทึกไม่สำเร็จ: ' + (result.error || '');
+  } catch (err) {
+    if (statusEl) statusEl.textContent = 'บันทึกไม่สำเร็จ (เชื่อมต่อไม่ได้)';
+  }
+}
+
+// ====== ระบบ 2: บันทึกคาร์บ — เพิ่มรายการแล้วซิงค์ทันทีทีละรายการ (กันข้อมูลหายถ้าปิด/รีเฟรชแอป) ======
+function populateFoodSelect() {
+  const sel = document.getElementById('foodSelect');
+  FOOD_DB.forEach((f, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = f.name;
+    sel.appendChild(opt);
+  });
+  updatePreview();
+}
+
+function updatePreview() {
+  const idx = document.getElementById('foodSelect').value;
+  const qty = parseFloat(document.getElementById('qtyInput').value) || 0;
+  const food = FOOD_DB[idx];
+  const carbs = food ? Math.round(food.carbs * qty) : 0;
+  document.getElementById('carbPreview').textContent = `≈ ${carbs} กรัมคาร์บ`;
+}
+
+function selectMeal(meal, btn) {
+  selectedMeal = meal;
+  btn.parentElement.querySelectorAll('.meal-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function changeQty(delta) {
+  const input = document.getElementById('qtyInput');
+  let v = (parseFloat(input.value) || 1) + delta;
+  v = Math.max(0.5, Math.round(v * 2) / 2);
+  input.value = v;
+  updatePreview();
+}
+
+function showError(msg) {
+  const el = document.getElementById('formError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function clearError() {
+  document.getElementById('formError').style.display = 'none';
+}
+
+function addEntry() {
+  const idx = document.getElementById('foodSelect').value;
+  const qty = parseFloat(document.getElementById('qtyInput').value) || 0;
+  const food = FOOD_DB[idx];
+  if (!food || qty <= 0) { showError('เลือกอาหารและใส่จำนวนก่อนนะ'); return; }
+  clearError();
+  const carbs = Math.round(food.carbs * qty);
+  const entry = { meal: selectedMeal, food: food.name, qty, carbs, synced: false };
+  todayLog.push(entry);
+  renderLog();
+  updateRing();
+  syncEntry(entry);
+}
+
+async function syncEntry(entry) {
+  if (!GAS_WEB_APP_URL.startsWith('https://script.google.com/') || !myIdToken) { renderLog(); return; }
+  try {
+    const res = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ type: 'carb', idToken: myIdToken, displayName: profile.displayName, entries: [entry] }),
+    });
+    const result = await res.json();
+    if (result.ok) entry.synced = true;
+  } catch (err) { /* จะขึ้นแบนเนอร์ให้กดซิงค์ใหม่แทน */ }
+  renderLog();
+}
+
+async function syncAllPending() {
+  const pending = todayLog.filter(e => !e.synced);
+  if (pending.length === 0 || !GAS_WEB_APP_URL.startsWith('https://script.google.com/') || !myIdToken) return;
+  try {
+    const res = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ type: 'carb', idToken: myIdToken, displayName: profile.displayName, entries: pending }),
+    });
+    const result = await res.json();
+    if (result.ok) pending.forEach(e => e.synced = true);
+  } catch (err) { /* ปุ่มยังอยู่ให้กดใหม่ได้ */ }
+  renderLog();
+}
+
+function removeEntry(i) {
+  if (todayLog[i] && todayLog[i].synced) return; // บันทึกเข้าระบบแล้ว ลบจากตรงนี้ไม่ได้ ต้องแจ้งพยาบาลถ้ากรอกผิด
+  todayLog.splice(i, 1);
+  renderLog();
+  updateRing();
+}
+
+function renderLog() {
+  const list = document.getElementById('logList');
+  list.innerHTML = '';
+  if (todayLog.length === 0) {
+    list.innerHTML = '<li class="log-empty">ยังไม่มีรายการวันนี้</li>';
+  } else {
+    todayLog.forEach((entry, i) => {
+      const li = document.createElement('li');
+      li.className = 'log-item';
+      const dot = entry.synced ? '' : '<span class="sync-pending" title="กำลังซิงค์">●</span> ';
+      const delAttrs = entry.synced ? 'disabled title="บันทึกเข้าระบบแล้ว ลบจากตรงนี้ไม่ได้"' : '';
+      li.innerHTML = `<span class="log-meal">${entry.meal}</span><span class="log-food">${dot}${entry.food}</span><span class="log-carbs tabular-nums">${entry.carbs} ก.</span><button class="log-del" onclick="removeEntry(${i})" aria-label="ลบรายการ" ${delAttrs}>×</button>`;
+      list.appendChild(li);
+    });
+  }
+  const pending = todayLog.filter(e => !e.synced).length;
+  const banner = document.getElementById('syncBanner');
+  if (pending > 0 && GAS_WEB_APP_URL.startsWith('https://script.google.com/')) {
+    banner.style.display = 'flex';
+    banner.querySelector('span').textContent = `มีรายการที่ยังไม่ได้ซิงค์ ${pending} รายการ`;
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+function totalCarbs() {
+  return todayLog.reduce((sum, e) => sum + e.carbs, 0);
+}
+
+function updateRing() {
+  const total = totalCarbs();
+  const pct = Math.min(1, total / DAILY_TARGET_G);
+  const circumference = 2 * Math.PI * 54;
+  const ring = document.getElementById('ringProgress');
+  ring.style.strokeDashoffset = circumference * (1 - pct);
+  let color = 'var(--good)';
+  if (total > DAILY_TARGET_G) color = 'var(--over)';
+  else if (pct > 0.85) color = 'var(--warn)';
+  ring.style.stroke = color;
+  document.getElementById('ringText').textContent = `${total}/${DAILY_TARGET_G}`;
+}
+
+function toggleEducation() {
+  const box = document.getElementById('eduContent');
+  const chevron = document.getElementById('eduChevron');
+  const btn = document.querySelector('.edu-toggle');
+  const isOpen = box.style.maxHeight && box.style.maxHeight !== '0px';
+  box.style.maxHeight = isOpen ? '0px' : box.scrollHeight + 'px';
+  chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(90deg)';
+  btn.setAttribute('aria-expanded', String(!isOpen));
+}
+
+// ====== ระบบ 3: ปริมาณอินซูลิน ======
+function calcInsulin() {
+  const el = document.getElementById('insulinError');
+  const target = parseFloat(document.getElementById('targetInput').value);
+  const isf = parseFloat(document.getElementById('isfInput').value);
+  const icr = parseFloat(document.getElementById('icrInput').value);
+  const current = parseFloat(document.getElementById('currentBgInput').value);
+  const carbs = parseFloat(document.getElementById('mealCarbInput').value);
+
+  if (!target || target <= 0 || !isf || isf <= 0 || !icr || icr <= 0) {
+    el.textContent = 'กรอกค่า Target, ISF และ ICR ที่มากกว่า 0 ให้ครบก่อน';
+    el.style.display = 'block';
+    return;
+  }
+  if ((!current || current <= 0) && (!carbs || carbs <= 0)) {
+    el.textContent = 'กรอกน้ำตาลปัจจุบัน หรือคาร์บมื้อนี้ อย่างน้อย 1 ค่า';
+    el.style.display = 'block';
+    return;
+  }
+  el.style.display = 'none';
+
+  let correctionDose = current > 0 ? (current - target) / isf : 0;
+  if (correctionDose < 0) correctionDose = 0;
+  const mealDose = carbs > 0 ? carbs / icr : 0;
+  // ปัดลงละเอียด 0.5 หน่วยเสมอ (ไม่ปัดขึ้น) — ปัดขึ้นในผู้ป่วยที่ไวต่ออินซูลินเสี่ยงน้ำตาลต่ำเกิน
+  const totalDose = Math.floor((correctionDose + mealDose) * 2) / 2;
+
+  document.getElementById('insulinPlaceholder').style.display = 'none';
+  const box = document.getElementById('insulinResult');
+  box.className = 'result-box neutral reveal';
+  box.style.display = 'block';
+  box.innerHTML = `
+    <div class="result-title">ปริมาณที่แนะนำ</div>
+    <div class="result-total tabular-nums">${totalDose} หน่วย</div>
+    <div class="result-breakdown tabular-nums">ส่วนแก้ไข: ${correctionDose.toFixed(1)} + ส่วนมื้ออาหาร: ${mealDose.toFixed(1)}</div>
+    <div class="result-footnote">ตัวเลขนี้มาจากสูตรคำนวณเท่านั้น กรุณาตรวจสอบกับพยาบาลหรือแพทย์ก่อนฉีดอินซูลินทุกครั้ง</div>
+    <div class="result-footnote" id="insulinSaveStatus">กำลังบันทึก...</div>
+  `;
+
+  saveInsulin({ target, isf, icr, current: current || 0, carbs: carbs || 0, correctionDose, mealDose, totalDose });
+}
+
+async function saveInsulin(data) {
+  const statusEl = document.getElementById('insulinSaveStatus');
+  if (!GAS_WEB_APP_URL.startsWith('https://script.google.com/') || !myIdToken) {
+    if (statusEl) statusEl.textContent = 'โหมดทดสอบ — ยังไม่บันทึกเข้าระบบจริง';
+    return;
+  }
+  try {
+    const res = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(Object.assign({ type: 'insulin', idToken: myIdToken, displayName: profile.displayName }, data)),
+    });
+    const result = await res.json();
+    if (statusEl) statusEl.textContent = result.ok ? 'บันทึกเข้าระบบแล้ว' : 'บันทึกไม่สำเร็จ: ' + (result.error || '');
+  } catch (err) {
+    if (statusEl) statusEl.textContent = 'บันทึกไม่สำเร็จ (เชื่อมต่อไม่ได้)';
   }
 }
 
@@ -467,18 +838,43 @@ const MOCK_HISTORY = {
 };
 
 async function loadHistory() {
-  try {
-    const idToken = liff.getIDToken && liff.getIDToken();
-    if (!idToken || !GAS_WEB_APP_URL.startsWith('https://script.google.com/')) throw new Error('not configured');
-    const res = await fetch(`${GAS_WEB_APP_URL}?action=myHistory&idToken=${encodeURIComponent(idToken)}`);
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.error || 'load failed');
-    historyData = data;
-  } catch (err) {
+  document.getElementById('historyDemoNotice').style.display = 'none';
+  document.getElementById('historyErrorNotice').style.display = 'none';
+
+  if (!GAS_WEB_APP_URL.startsWith('https://script.google.com/')) {
     historyData = MOCK_HISTORY;
+    document.getElementById('historyDemoNotice').style.display = 'flex';
+    renderHistoryAll();
+    return;
   }
+  if (!myIdToken) {
+    showHistoryError('ไม่พบข้อมูลยืนยันตัวตน ลองเปิดหน้านี้ใหม่อีกครั้ง');
+    return;
+  }
+  try {
+    const res = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ type: 'myHistory', idToken: myIdToken }),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'โหลดข้อมูลไม่สำเร็จ');
+    historyData = data;
+    renderHistoryAll();
+  } catch (err) {
+    // สำคัญ: ไม่ fallback ไปโชว์ข้อมูลสมมติเงียบๆ อีกต่อไป เพราะอาจทำให้เข้าใจผิดว่าเป็นข้อมูลจริง
+    showHistoryError(err.message);
+  }
+}
+
+function showHistoryError(msg) {
+  document.getElementById('historyErrorNotice').style.display = 'block';
+  document.getElementById('historyErrorMsg').textContent = msg || 'ไม่สามารถเชื่อมต่อกับระบบได้';
+}
+
+function renderHistoryAll() {
   renderGlucoseChart(historyData.glucose);
-  renderCarbChart(historyData.carbDaily, historyData.patient.target || DAILY_TARGET_G);
+  renderCarbChart(historyData.carbDaily, (historyData.patient && historyData.patient.target) || DAILY_TARGET_G);
   renderInsulinHistory(historyData.insulin);
 }
 
@@ -578,10 +974,6 @@ function buildReportContent() {
   `;
 }
 
-/**
- * สร้าง PDF จริงในเครื่อง (html2canvas capture + jsPDF) แทนการใช้ window.print()
- * เพราะ dialog พิมพ์ของเบราว์เซอร์มักใช้งานไม่ได้ใน in-app browser ของ LINE บนมือถือ
- */
 function printReport() {
   const statusEl = document.getElementById('pdfStatus');
   const btn = document.getElementById('pdfBtn');
@@ -609,283 +1001,11 @@ function printReport() {
     .finally(() => { btn.disabled = false; });
 }
 
-/**
- * ทางเลือกสำรอง — เปิดหน้านี้ในเบราว์เซอร์ปกติของเครื่อง (Safari/Chrome) แทนที่จะอยู่ใน
- * in-app browser ของ LINE เพราะการดาวน์โหลดไฟล์บางรุ่นเครื่อง/บางเวอร์ชัน LINE ยังมีข้อจำกัดอยู่
- */
 function openInExternalBrowser() {
   if (window.liff && liff.isInClient && liff.isInClient()) {
     liff.openWindow({ url: window.location.href, external: true });
   } else {
     window.open(window.location.href, '_blank');
-  }
-}
-
-// ====== ระบบ 1: ตรวจน้ำตาล ======
-const GLUCOSE_RANGES = {
-  fasting: [{ max: 130, level: 'normal' }, { max: 180, level: 'high' }, { max: Infinity, level: 'very-high' }],
-  postmeal: [{ max: 180, level: 'normal' }, { max: 250, level: 'high' }, { max: Infinity, level: 'very-high' }],
-  emergency: [{ max: 180, level: 'normal' }, { max: 250, level: 'high' }, { max: Infinity, level: 'very-high' }],
-};
-const GLUCOSE_LABELS = { normal: 'ปกติ', high: 'สูงกว่าเกณฑ์', 'very-high': 'สูงมาก' };
-
-function selectTiming(t, btn) {
-  selectedTiming = t;
-  btn.parentElement.querySelectorAll('.meal-chip').forEach(c => c.classList.remove('active'));
-  btn.classList.add('active');
-}
-
-async function analyzeGlucose() {
-  const el = document.getElementById('glucoseError');
-  const value = parseFloat(document.getElementById('glucoseInput').value);
-  if (!value || value <= 0) { el.textContent = 'กรอกค่าน้ำตาลในเลือดก่อนนะ'; el.style.display = 'block'; return; }
-  el.style.display = 'none';
-
-  const box = document.getElementById('glucoseResult');
-  document.getElementById('glucosePlaceholder').style.display = 'none';
-  box.classList.remove('flash-danger');
-  box.removeAttribute('role');
-
-  let level, cls, title, message;
-  const timingLabel = { fasting: 'ก่อนอาหาร', postmeal: 'หลังอาหาร', emergency: 'สุ่มตรวจ' }[selectedTiming];
-
-  if (value < 70) {
-    level = 'danger'; cls = 'danger';
-    title = `อันตราย! ภาวะน้ำตาลในเลือดต่ำ (${value} mg/dL)`;
-    message = 'ดื่มน้ำหวานครึ่งแก้ว หรือทานลูกอมทันที หากอาการไม่ดีขึ้นภายใน 15 นาที หรือไม่สามารถกินดื่มได้อย่างปลอดภัย ให้ขอความช่วยเหลือฉุกเฉินทันที';
-  } else {
-    const table = GLUCOSE_RANGES[selectedTiming] || GLUCOSE_RANGES.postmeal;
-    const band = table.find(b => value <= b.max);
-    level = band.level;
-    title = `${GLUCOSE_LABELS[band.level]} (${value} mg/dL, ${timingLabel})`;
-    if (band.level === 'normal') { message = 'ค่านี้อยู่ในเกณฑ์ปกติ รักษาสุขภาพและกิจวัตรที่ดีต่อไป'; cls = 'good'; }
-    else if (band.level === 'high') { message = 'ค่านี้สูงกว่าเกณฑ์ปกติ ลองทบทวนมื้ออาหารที่ผ่านมา และตรวจซ้ำอีกครั้งในภายหลัง'; cls = 'warn'; }
-    else {
-      cls = 'danger';
-      message = selectedTiming === 'emergency'
-        ? 'ค่านี้สูงมาก ควรไปพบแพทย์โดยเร็ว โดยเฉพาะหากมีอาการสับสน กระหายน้ำมาก คลื่นไส้ หรือหายใจลำบาก'
-        : 'ค่านี้สูงมาก กรุณาติดต่อแพทย์หรือทีมดูแลของคุณ';
-    }
-  }
-
-  box.className = `result-box ${cls} reveal`;
-  box.style.display = 'block';
-  if (level === 'danger') box.setAttribute('role', 'alert');
-  box.innerHTML = `<div class="result-title tabular-nums">${title}</div><div class="result-message">${message}</div><div class="result-footnote" id="glucoseSaveStatus">กำลังบันทึก...</div>`;
-  if (level === 'danger') box.classList.add('flash-danger');
-
-  saveGlucose(value, selectedTiming, level);
-}
-
-async function saveGlucose(value, timing, level) {
-  const statusEl = document.getElementById('glucoseSaveStatus');
-  if (!GAS_WEB_APP_URL.startsWith('https://script.google.com/')) {
-    if (statusEl) statusEl.textContent = 'โหมดทดสอบ — ยังไม่บันทึกเข้าระบบจริง';
-    return;
-  }
-  try {
-    const res = await fetch(GAS_WEB_APP_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ type: 'glucose', userId: profile.userId, displayName: profile.displayName, value, timing, level }),
-    });
-    const result = await res.json();
-    if (statusEl) statusEl.textContent = result.ok ? 'บันทึกเข้าระบบแล้ว' : 'บันทึกไม่สำเร็จ: ' + (result.error || '');
-  } catch (err) {
-    if (statusEl) statusEl.textContent = 'บันทึกไม่สำเร็จ (เชื่อมต่อไม่ได้)';
-  }
-}
-
-// ====== ระบบ 2: บันทึกคาร์บ (โค้ดเดิม) ======
-function populateFoodSelect() {
-  const sel = document.getElementById('foodSelect');
-  FOOD_DB.forEach((f, i) => {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = f.name;
-    sel.appendChild(opt);
-  });
-  updatePreview();
-}
-
-function updatePreview() {
-  const idx = document.getElementById('foodSelect').value;
-  const qty = parseFloat(document.getElementById('qtyInput').value) || 0;
-  const food = FOOD_DB[idx];
-  const carbs = food ? Math.round(food.carbs * qty) : 0;
-  document.getElementById('carbPreview').textContent = `≈ ${carbs} กรัมคาร์บ`;
-}
-
-function selectMeal(meal, btn) {
-  selectedMeal = meal;
-  btn.parentElement.querySelectorAll('.meal-chip').forEach(c => c.classList.remove('active'));
-  btn.classList.add('active');
-}
-
-function changeQty(delta) {
-  const input = document.getElementById('qtyInput');
-  let v = (parseFloat(input.value) || 1) + delta;
-  v = Math.max(0.5, Math.round(v * 2) / 2);
-  input.value = v;
-  updatePreview();
-}
-
-function showError(msg) {
-  const el = document.getElementById('formError');
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-function clearError() {
-  document.getElementById('formError').style.display = 'none';
-}
-
-function addEntry() {
-  const idx = document.getElementById('foodSelect').value;
-  const qty = parseFloat(document.getElementById('qtyInput').value) || 0;
-  const food = FOOD_DB[idx];
-  if (!food || qty <= 0) { showError('เลือกอาหารและใส่จำนวนก่อนนะ'); return; }
-  clearError();
-  const carbs = Math.round(food.carbs * qty);
-  todayLog.push({ meal: selectedMeal, food: food.name, qty, carbs });
-  renderLog();
-  updateRing();
-}
-
-function removeEntry(i) {
-  todayLog.splice(i, 1);
-  renderLog();
-  updateRing();
-}
-
-function renderLog() {
-  const list = document.getElementById('logList');
-  list.innerHTML = '';
-  if (todayLog.length === 0) {
-    list.innerHTML = '<li class="log-empty">ยังไม่มีรายการวันนี้</li>';
-    return;
-  }
-  todayLog.forEach((entry, i) => {
-    const li = document.createElement('li');
-    li.className = 'log-item';
-    li.innerHTML = `<span class="log-meal">${entry.meal}</span><span class="log-food">${entry.food}</span><span class="log-carbs tabular-nums">${entry.carbs} ก.</span><button class="log-del" onclick="removeEntry(${i})" aria-label="ลบรายการ">×</button>`;
-    list.appendChild(li);
-  });
-}
-
-function totalCarbs() {
-  return todayLog.reduce((sum, e) => sum + e.carbs, 0);
-}
-
-function updateRing() {
-  const total = totalCarbs();
-  const pct = Math.min(1, total / DAILY_TARGET_G);
-  const circumference = 2 * Math.PI * 54;
-  const ring = document.getElementById('ringProgress');
-  ring.style.strokeDashoffset = circumference * (1 - pct);
-  let color = 'var(--good)';
-  if (total > DAILY_TARGET_G) color = 'var(--over)';
-  else if (pct > 0.85) color = 'var(--warn)';
-  ring.style.stroke = color;
-  document.getElementById('ringText').textContent = `${total}/${DAILY_TARGET_G}`;
-}
-
-async function saveToday() {
-  clearError();
-  if (todayLog.length === 0) { showError('ยังไม่มีรายการให้บันทึก'); return; }
-  if (!GAS_WEB_APP_URL.startsWith('https://script.google.com/')) {
-    showError('ยังไม่ได้เชื่อม Apps Script backend (ขั้นตอนถัดไป) — ตอนนี้ข้อมูลจะยังไม่ถูกบันทึกจริง');
-    return;
-  }
-  const btn = document.getElementById('saveBtn');
-  btn.disabled = true;
-  btn.textContent = 'กำลังบันทึก...';
-  try {
-    const res = await fetch(GAS_WEB_APP_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ type: 'carb', userId: profile.userId, displayName: profile.displayName, entries: todayLog }),
-    });
-    const result = await res.json();
-    if (!result.ok) throw new Error(result.error || 'ไม่ทราบสาเหตุ');
-    btn.textContent = 'บันทึกสำเร็จ';
-    todayLog = [];
-    renderLog();
-    updateRing();
-  } catch (err) {
-    btn.textContent = 'บันทึกไม่สำเร็จ';
-    showError('บันทึกไม่สำเร็จ: ' + err.message);
-  } finally {
-    setTimeout(() => { btn.disabled = false; btn.textContent = 'บันทึกข้อมูล'; }, 2500);
-  }
-}
-
-function toggleEducation() {
-  const box = document.getElementById('eduContent');
-  const chevron = document.getElementById('eduChevron');
-  const btn = document.querySelector('.edu-toggle');
-  const isOpen = box.style.maxHeight && box.style.maxHeight !== '0px';
-  box.style.maxHeight = isOpen ? '0px' : box.scrollHeight + 'px';
-  chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(90deg)';
-  btn.setAttribute('aria-expanded', String(!isOpen));
-}
-
-// ====== ระบบ 3: ปริมาณอินซูลิน ======
-async function calcInsulin() {
-  const el = document.getElementById('insulinError');
-  const target = parseFloat(document.getElementById('targetInput').value);
-  const isf = parseFloat(document.getElementById('isfInput').value);
-  const icr = parseFloat(document.getElementById('icrInput').value);
-  const current = parseFloat(document.getElementById('currentBgInput').value);
-  const carbs = parseFloat(document.getElementById('mealCarbInput').value);
-
-  if (!target || target <= 0 || !isf || isf <= 0 || !icr || icr <= 0) {
-    el.textContent = 'กรอกค่า Target, ISF และ ICR ที่มากกว่า 0 ให้ครบก่อน (เป็นค่าที่แพทย์กำหนดให้คุณโดยเฉพาะ)';
-    el.style.display = 'block';
-    return;
-  }
-  if ((!current || current <= 0) && (!carbs || carbs <= 0)) {
-    el.textContent = 'กรอกน้ำตาลปัจจุบัน หรือคาร์บมื้อนี้ อย่างน้อย 1 ค่า';
-    el.style.display = 'block';
-    return;
-  }
-  el.style.display = 'none';
-
-  let correctionDose = current > 0 ? (current - target) / isf : 0;
-  if (correctionDose < 0) correctionDose = 0;
-  const mealDose = carbs > 0 ? carbs / icr : 0;
-  const totalDose = Math.round(correctionDose + mealDose);
-
-  document.getElementById('insulinPlaceholder').style.display = 'none';
-  const box = document.getElementById('insulinResult');
-  box.className = 'result-box neutral reveal';
-  box.style.display = 'block';
-  box.innerHTML = `
-    <div class="result-title">ปริมาณที่แนะนำ</div>
-    <div class="result-total tabular-nums">${totalDose} หน่วย</div>
-    <div class="result-breakdown tabular-nums">ส่วนแก้ไข: ${correctionDose.toFixed(1)} + ส่วนมื้ออาหาร: ${mealDose.toFixed(1)}</div>
-    <div class="result-footnote">ตัวเลขนี้มาจากสูตรคำนวณเท่านั้น กรุณาตรวจสอบกับพยาบาลหรือแพทย์ก่อนฉีดอินซูลินทุกครั้ง</div>
-    <div class="result-footnote" id="insulinSaveStatus">กำลังบันทึก...</div>
-  `;
-
-  saveInsulin({ target, isf, icr, current: current || 0, carbs: carbs || 0, correctionDose, mealDose, totalDose });
-}
-
-async function saveInsulin(data) {
-  const statusEl = document.getElementById('insulinSaveStatus');
-  if (!GAS_WEB_APP_URL.startsWith('https://script.google.com/')) {
-    if (statusEl) statusEl.textContent = 'โหมดทดสอบ — ยังไม่บันทึกเข้าระบบจริง';
-    return;
-  }
-  try {
-    const res = await fetch(GAS_WEB_APP_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(Object.assign({ type: 'insulin', userId: profile.userId, displayName: profile.displayName }, data)),
-    });
-    const result = await res.json();
-    if (statusEl) statusEl.textContent = result.ok ? 'บันทึกเข้าระบบแล้ว' : 'บันทึกไม่สำเร็จ: ' + (result.error || '');
-  } catch (err) {
-    if (statusEl) statusEl.textContent = 'บันทึกไม่สำเร็จ (เชื่อมต่อไม่ได้)';
   }
 }
 
