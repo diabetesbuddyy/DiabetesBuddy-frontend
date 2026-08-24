@@ -1,27 +1,684 @@
 <!DOCTYPE html>
-<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>หลังบ้านทีมดูแล — Diabetes Buddy</title><script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600&family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet"><style>
-*{box-sizing:border-box}:root{--bg:#F5F4F0;--surface:#fff;--ink:#24302A;--ink-soft:#66716A;--brand:#1B5E4C;--brand-light:#E3F1EA;--border:#E2E0D8;--good:#4F8F52;--good-bg:#EAF4EA;--warn:#C9821E;--warn-bg:#FCF3E2;--over:#C2503F;--over-bg:#FBEAE7}html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'Sarabun',sans-serif}.header{background:var(--brand);color:#fff;padding:22px 20px}.header-inner{max-width:700px;margin:auto;display:flex;justify-content:space-between;gap:12px}.header h1{font-family:'Kanit';font-size:21px;margin:0 0 4px}.header p{margin:0;font-size:13px;color:rgba(255,255,255,.82)}.btn{border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:10px;padding:8px 12px;font-size:12px;cursor:pointer}.header .btn{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff}.content{max-width:700px;margin:auto;padding:20px}.state{text-align:center;padding:40px 20px;color:var(--ink-soft)}.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px}.summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}.summary-card{border:1px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center}.summary-card.alert{background:var(--over-bg);border-color:var(--over)}.num{font-family:'Kanit';font-size:24px}.label{font-size:11.5px;color:var(--ink-soft)}.section-title{font-family:'Kanit';font-size:15px;margin:0 0 12px}.search{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);font-family:'Sarabun';background:var(--surface);color:var(--ink)}.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.chip{font-size:12px;padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--ink-soft);cursor:pointer}.chip.active{background:var(--brand);border-color:var(--brand);color:#fff}.patient{border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden}.patient-head{padding:13px 15px;display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer}.name{font-family:'Kanit';font-weight:600}.meta{font-size:12px;color:var(--ink-soft);margin-top:2px}.badge{font-size:11px;padding:4px 9px;border-radius:999px;font-weight:600;white-space:nowrap}.badge.good{background:var(--good-bg);color:var(--good)}.badge.warn{background:var(--over-bg);color:var(--over)}.badge.none{background:var(--border);color:var(--ink-soft)}.body{display:none;border-top:1px solid var(--border);padding:14px}.patient.open .body{display:block}.row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:12.5px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}input,select,textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--ink);font-family:'Sarabun'}.small-label{font-size:11px;color:var(--ink-soft);display:block;margin-bottom:4px}.save{margin-top:8px;width:100%;padding:9px;border:none;border-radius:8px;background:var(--brand);color:#fff;font-weight:600;cursor:pointer}.message{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}.msg-btn{width:100%;padding:9px;border:none;border-radius:8px;background:var(--brand-light);color:var(--brand);font-weight:600;cursor:pointer}.notice{display:flex;align-items:center;gap:8px;background:var(--warn-bg);border:1px solid #EFCB86;border-radius:10px;padding:10px 12px;font-size:12px;color:#8A5A12;margin-bottom:16px}.role{font-size:12px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.16);margin-top:6px;display:inline-block}.error{background:var(--over-bg);border:1px solid var(--over);color:var(--over);padding:14px;border-radius:12px;font-size:13px}.muted{color:var(--ink-soft);font-size:12px}.admin-only{display:none}
-</style></head><body>
-<div class="header"><div class="header-inner"><div><h1>หลังบ้านทีมดูแล</h1><p>Dashboard สำหรับ Admin / Doctor / Nurse</p><span class="role" id="roleBadge">กำลังตรวจสอบ</span></div><button class="btn" onclick="init()">รีเฟรช</button></div></div>
-<div class="content"><div id="loading" class="state">กำลังตรวจสอบสิทธิ์เข้าถึง...</div><div id="denied" style="display:none"><div class="error"><strong>ไม่มีสิทธิ์เข้าถึง</strong><div id="deniedMsg" style="margin-top:6px"></div></div></div><div id="dashboard" style="display:none"><div id="banner" class="notice">ข้อมูลที่แสดงเป็นข้อมูลจริงจาก backend ไม่ใช่ mock data</div><div class="summary"><div class="summary-card"><div class="num" id="sumTotal">-</div><div class="label">ผู้ป่วยที่ดูแล</div></div><div class="summary-card"><div class="num" id="sumLogged">-</div><div class="label">บันทึกคาร์บวันนี้</div></div><div class="summary-card" id="overCard"><div class="num" id="sumOver">-</div><div class="label">คาร์บเกินเป้า</div></div><div class="summary-card" id="hypoCard"><div class="num" id="sumHypo">-</div><div class="label">น้ำตาลต่ำวันนี้</div></div></div><div class="card"><p class="section-title">รายชื่อผู้ป่วย</p><input class="search" id="search" placeholder="ค้นหาชื่อผู้ป่วย..." oninput="render()"><div class="chips"><button class="chip active" onclick="setFilter('all',this)">ทั้งหมด</button><button class="chip" onclick="setFilter('hypo',this)">น้ำตาลต่ำ</button><button class="chip" onclick="setFilter('over',this)">คาร์บเกิน</button><button class="chip" onclick="setFilter('missing',this)">ขาดน้ำหนัก</button></div><p class="muted" id="count"></p><div id="list"></div></div><div class="card admin-only" id="careTeamCard"><p class="section-title">จัดการผู้ดูแล</p><p class="muted">Admin สามารถกำหนด Doctor และ Nurse ให้ผู้ป่วยได้</p><div id="careTeamList"></div></div></div></div></div>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>หลังบ้านพยาบาล</title>
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600&family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+:root {
+  --bg: #F5F4F0; --surface: #FFFFFF; --ink: #24302A; --ink-soft: #66716A;
+  --brand: #1B5E4C; --brand-light: #E3F1EA; --border: #E2E0D8;
+  --good: #4F8F52; --good-bg: #EAF4EA;
+  --warn: #C9821E; --warn-bg: #FCF3E2;
+  --over: #C2503F; --over-bg: #FBEAE7;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171C19; --surface: #212823; --ink: #EAEDE9; --ink-soft: #9AA39C;
+    --brand: #4E9C81; --brand-light: #223730; --border: #333B35;
+    --good-bg: #1F3021; --warn-bg: #3A2E14; --over-bg: #3A211D;
+  }
+}
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: 'Sarabun', sans-serif; -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+.tabular-nums { font-variant-numeric: tabular-nums; }
+
+.header { background: var(--brand); color: #fff; padding: 22px 20px calc(18px + env(safe-area-inset-top)); }
+.header-inner { max-width: 640px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.header h1 { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 21px; margin: 0 0 4px; }
+.header p { margin: 0; font-size: 13px; color: rgba(255,255,255,0.82); }
+.refresh-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; border-radius: 10px; padding: 8px 12px; font-size: 12px; cursor: pointer; flex-shrink: 0; }
+
+.content { max-width: 640px; margin: 0 auto; padding: 20px; }
+.state-msg { text-align: center; color: var(--ink-soft); font-size: 13.5px; padding: 40px 20px; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+.card h2 { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 17px; margin: 0 0 6px; color: var(--brand); }
+.card .sub { font-size: 13px; color: var(--ink-soft); margin: 0 0 14px; line-height: 1.6; }
+.id-box { background: var(--brand-light); color: var(--brand); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; word-break: break-all; margin-bottom: 12px; }
+.id-box code { font-family: monospace; }
+.hint { font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; margin: 0; }
+
+.demo-banner { display: flex; align-items: center; gap: 8px; background: var(--warn-bg); color: var(--warn); border: 1px solid #EFCB86; border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.5; margin-bottom: 16px; }
+.demo-banner svg { flex-shrink: 0; }
+.error-banner { background: var(--over-bg); border: 1px solid var(--over); color: var(--over); border-radius: 12px; padding: 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; }
+.error-banner button { margin-top: 10px; }
+
+.summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
+.summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 10px; text-align: center; }
+.summary-card.alert { background: var(--over-bg); border-color: var(--over); }
+.summary-num { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 24px; color: var(--ink); }
+.summary-card.alert .summary-num { color: var(--over); }
+.summary-label { font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; }
+
+.section-title { font-family: 'Kanit', sans-serif; font-weight: 500; font-size: 15px; margin: 0 0 12px; }
+.search-row { margin-bottom: 10px; }
+.search-row input { width: 100%; font-size: 14px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); font-family: 'Sarabun', sans-serif; }
+.filter-chips { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.filter-chip { font-family: 'Sarabun', sans-serif; font-size: 12px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--ink-soft); cursor: pointer; }
+.filter-chip.active { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 600; }
+.result-count { font-size: 11.5px; color: var(--ink-soft); margin: 0 0 10px; }
+.patient-row { border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px; margin-bottom: 10px; }
+.patient-row:last-child { margin-bottom: 0; }
+.patient-row-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; cursor: pointer; }
+.patient-name { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 14px; }
+.patient-meta { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+.status-badge { font-size: 11px; padding: 4px 10px; border-radius: 999px; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+.status-badge.good { background: var(--good-bg); color: var(--good); }
+.status-badge.warn { background: var(--over-bg); color: var(--over); }
+.status-badge.none { background: var(--border); color: var(--ink-soft); }
+.patient-entries { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.patient-row.expanded .patient-entries { display: block; }
+.entry-row { display: flex; justify-content: space-between; font-size: 12.5px; padding: 4px 0; color: var(--ink-soft); }
+.entry-empty { font-size: 12.5px; color: var(--ink-soft); font-style: italic; }
+
+.edit-toggle { background: none; border: none; color: var(--brand); font-size: 12px; font-weight: 600; cursor: pointer; padding: 8px 0 0; }
+.edit-form { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.edit-form.open { display: block; }
+.edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.edit-grid label { font-size: 11px; color: var(--ink-soft); display: block; margin-bottom: 4px; }
+.edit-grid input { width: 100%; font-size: 13px; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); }
+.edit-save-btn { width: 100%; padding: 8px; border-radius: 8px; border: none; background: var(--brand); color: #fff; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.edit-status { font-size: 11.5px; color: var(--ink-soft); margin-top: 6px; text-align: center; }
+
+
+/* ===== Unified Doctor / Nurse / Admin workspace ===== */
+.role-pill { display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:999px; font-size:11.5px; font-weight:600; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); color:#fff; margin-top:7px; }
+.role-nav { display:flex; gap:8px; margin:0 0 14px; flex-wrap:wrap; }
+.role-nav button { flex:1; min-width:150px; padding:11px 14px; border-radius:12px; border:1px solid var(--border); background:var(--surface); color:var(--ink-soft); font-family:'Sarabun',sans-serif; font-weight:600; cursor:pointer; }
+.role-nav button.active { background:var(--brand); border-color:var(--brand); color:#fff; }
+.doctor-panel { display:none; margin-top:14px; }
+.doctor-panel.open { display:block; }
+.plan-toolbar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+.secondary-btn,.primary-btn,.warning-btn { border-radius:10px; padding:9px 12px; font-family:'Sarabun',sans-serif; font-size:12.5px; font-weight:600; cursor:pointer; border:1px solid var(--border); }
+.primary-btn { background:var(--brand); color:#fff; border-color:var(--brand); }
+.secondary-btn { background:var(--surface); color:var(--ink); }
+.warning-btn { background:var(--warn-bg); color:var(--warn); border-color:#EFCB86; }
+.plan-state { font-size:12px; padding:9px 11px; border-radius:10px; margin-bottom:12px; background:var(--brand-light); color:var(--brand); }
+.plan-state.draft { background:var(--warn-bg); color:var(--warn); }
+.plan-state.empty { background:var(--border); color:var(--ink-soft); }
+.plan-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.plan-group { border:1px solid var(--border); border-radius:14px; padding:14px; background:var(--surface); }
+.plan-group.full { grid-column:1/-1; }
+.plan-group h3 { margin:0 0 8px; font-family:'Kanit',sans-serif; font-size:15px; color:var(--brand); }
+.plan-group p.helper { margin:0 0 10px; font-size:11.5px; color:var(--ink-soft); line-height:1.6; }
+.plan-field { margin-bottom:9px; }
+.plan-field:last-child { margin-bottom:0; }
+.plan-field label { display:block; font-size:11px; color:var(--ink-soft); margin-bottom:4px; }
+.plan-field input,.plan-field select,.plan-field textarea { width:100%; font-size:13px; padding:9px 10px; border-radius:9px; border:1px solid var(--border); background:var(--surface); color:var(--ink); font-family:'Sarabun',sans-serif; }
+.plan-field textarea { min-height:70px; resize:vertical; }
+.plan-check { display:flex; align-items:center; gap:8px; font-size:12.5px; margin-bottom:9px; }
+.plan-check input { width:18px; height:18px; }
+.plan-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+.plan-readonly { background:var(--brand-light); border-radius:10px; padding:10px; font-size:12px; color:var(--brand); line-height:1.6; }
+.plan-status { font-size:11.5px; color:var(--ink-soft); text-align:center; margin-top:8px; min-height:18px; }
+@media (max-width:560px){ .plan-grid{grid-template-columns:1fr;} .plan-group.full{grid-column:auto;} .plan-actions{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <h1 id="workspaceTitle">หลังบ้านทีมดูแล</h1>
+      <p id="workspaceSubtitle">ภาพรวมน้ำตาล คาร์บ และอินซูลินของผู้ป่วยวันนี้</p>
+      <div class="role-pill" id="rolePill">กำลังตรวจสอบบทบาท…</div>
+    </div>
+    <button type="button" class="refresh-btn" onclick="init()">รีเฟรช</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <div class="state-msg" id="loadingState">กำลังตรวจสอบสิทธิ์เข้าถึง...</div>
+
+  <div id="deniedState" style="display:none">
+    <div class="card">
+      <h2>ไม่มีสิทธิ์เข้าถึงหน้านี้</h2>
+      <p class="sub">LINE User ID ของบัญชีนี้ยังไม่ได้รับสิทธิ์เข้าถึงหลังบ้านทีมดูแล</p>
+      <div class="id-box">User ID ของคุณ: <code id="yourUserId">-</code></div>
+      <p class="hint">ส่ง ID นี้ให้ผู้ดูแลระบบ ตรวจสอบชีท "Users" และกำหนด Role เป็น ADMIN / DOCTOR / NURSE พร้อมสถานะ ACTIVE แล้วเปิดหน้านี้ใหม่อีกครั้ง</p>
+    </div>
+  </div>
+
+  <div id="errorState" style="display:none">
+    <div class="error-banner">
+      <strong>⚠ โหลดข้อมูลไม่สำเร็จ</strong>
+      <p id="errorMsg" style="margin:6px 0 0;"></p>
+      <button type="button" class="refresh-btn" style="color:var(--over); border-color:var(--over); background:transparent;" onclick="init()">ลองใหม่</button>
+    </div>
+  </div>
+
+  <div id="dashboard" style="display:none">
+    <div class="role-nav" id="roleNav" style="display:none">
+      <button type="button" class="active" id="tabPatients" onclick="showWorkspaceTab('patients')">👥 ผู้ป่วย</button>
+      <button type="button" id="tabClinical" onclick="showWorkspaceTab('clinical')">💉 แผนอินซูลิน</button>
+    </div>
+    <div class="demo-banner" id="demoBanner">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 1.5l7 12.5H1L8 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 6v3.5M8 11.5v.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <span>โหมดทดสอบ — ยังไม่เชื่อมกับ backend จริง กำลังแสดงข้อมูลสมมติ</span>
+    </div>
+
+    <div id="patientsWorkspace">
+    <div class="summary-grid">
+      <div class="summary-card"><div class="summary-num tabular-nums" id="sumTotal">-</div><div class="summary-label">ผู้ป่วยทั้งหมด</div></div>
+      <div class="summary-card"><div class="summary-num tabular-nums" id="sumLogged">-</div><div class="summary-label">บันทึกวันนี้</div></div>
+      <div class="summary-card" id="overCard"><div class="summary-num tabular-nums" id="sumOver">-</div><div class="summary-label">คาร์บเกินเป้าวันนี้</div></div>
+      <div class="summary-card" id="hypoCard"><div class="summary-num tabular-nums" id="sumHypo">-</div><div class="summary-label">น้ำตาลต่ำวันนี้</div></div>
+    </div>
+
+    <div class="card">
+      <p class="section-title">รายชื่อผู้ป่วย</p>
+      <div class="search-row">
+        <input type="text" id="patientSearch" placeholder="ค้นหาชื่อผู้ป่วย..." oninput="renderPatientList()" aria-label="ค้นหาชื่อผู้ป่วย">
+      </div>
+      <div class="filter-chips" role="group" aria-label="กรองตามสถานะ">
+        <button type="button" class="filter-chip active" onclick="setFilter('all', this)">ทั้งหมด</button>
+        <button type="button" class="filter-chip" onclick="setFilter('hypo', this)">น้ำตาลต่ำ</button>
+        <button type="button" class="filter-chip" onclick="setFilter('over', this)">เกินเป้า</button>
+        <button type="button" class="filter-chip" onclick="setFilter('none', this)">ยังไม่บันทึก</button>
+      </div>
+      <p class="result-count" id="resultCount"></p>
+      <div id="patientList"></div>
+    </div>
+    </div>
+
+    <div class="doctor-panel" id="clinicalWorkspace">
+      <div class="card">
+        <h2>💉 แผนอินซูลินของผู้ป่วย</h2>
+        <p class="sub">Doctor/Admin สามารถสร้างหรือแก้ไข “ฉบับร่าง” และเผยแพร่ให้ผู้ป่วยเมื่อแผนได้รับการตรวจสอบแล้ว</p>
+        <div class="search-row">
+          <input type="text" id="clinicalPatientSearch" placeholder="ค้นหาชื่อผู้ป่วย..." aria-label="ค้นหาผู้ป่วยสำหรับแผนอินซูลิน">
+        </div>
+        <div id="clinicalPatientList"></div>
+      </div>
+
+      <div class="card" id="clinicalEditorCard" style="display:none; margin-top:14px">
+        <div id="clinicalPlanState" class="plan-state empty">ยังไม่ได้เลือกผู้ป่วย</div>
+        <div class="plan-readonly" id="clinicalPatientMeta">—</div>
+        <div class="plan-grid" style="margin-top:12px">
+          <div class="plan-group full">
+            <h3>📋 แผนการรักษา</h3>
+            <div class="plan-field"><label>Regimen</label><select id="planRegimen"><option value="">ยังไม่กำหนด</option><option value="basal">Basal</option><option value="bolus">Bolus</option><option value="basal_bolus">Basal + Bolus</option><option value="custom">กำหนดเฉพาะราย</option></select></div>
+          </div>
+
+          <div class="plan-group">
+            <h3>🌙 Basal</h3>
+            <label class="plan-check"><input type="checkbox" id="planBasalEnabled"> เปิดใช้งาน Basal</label>
+            <div class="plan-field"><label>วิธี Basal</label><select id="planBasalMethod"><option value="weight_coefficient">น้ำหนัก × coefficient</option><option value="doctor_defined">แพทย์กำหนดวิธีเฉพาะราย</option></select></div>
+            <div class="plan-field"><label>ค่าสัมประสิทธิ์ (unit/kg/day) <span style="color:var(--warn)">แพทย์เท่านั้น</span></label><input id="planBasalCoefficient" type="number" step="0.01" min="0"></div>
+            <div class="plan-field"><label>ขนาด Basal ที่แพทย์กำหนดจริง (unit/day)</label><input id="planBasalPrescribed" type="number" step="0.5" min="0"></div>
+            <label class="plan-check"><input type="checkbox" id="planWeightRequired" checked> ต้องมีน้ำหนักก่อนคำนวณค่าอ้างอิง</label>
+            <p class="helper">ค่าอ้างอิงจากน้ำหนักจะถูกคำนวณ/ยืนยันโดย backend เมื่อเผยแพร่แผน ไม่ใช่คำสั่งยาจากระบบ</p>
+          </div>
+
+          <div class="plan-group">
+            <h3>🍚 Bolus</h3>
+            <div class="plan-field"><label>วิธี Bolus ที่เลือก</label><select id="planSelectedBolus"><option value="">ยังไม่กำหนด</option><option value="icr">ICR</option><option value="doctor_defined_1">วิธีที่แพทย์กำหนด 1</option><option value="doctor_defined_2">วิธีที่แพทย์กำหนด 2</option></select></div>
+            <div class="plan-field"><label>ชื่อวิธีที่แพทย์กำหนด 1</label><input id="planBolus1Label" type="text"></div>
+            <div class="plan-field"><label>รายละเอียด/Config วิธีที่ 1</label><textarea id="planBolus1Config"></textarea></div>
+            <div class="plan-field"><label>ชื่อวิธีที่แพทย์กำหนด 2</label><input id="planBolus2Label" type="text"></div>
+            <div class="plan-field"><label>รายละเอียด/Config วิธีที่ 2</label><textarea id="planBolus2Config"></textarea></div>
+          </div>
+
+          <div class="plan-group full">
+            <h3>🥣 ICR ตามมื้อ</h3>
+            <p class="helper">กรอกเฉพาะค่าที่แพทย์/ทีมดูแลอนุมัติ ระบบจะไม่เติมค่าที่ไม่ได้กำหนด</p>
+            <div class="edit-grid">
+              <div class="plan-field"><label>🌅 เช้า (g/unit)</label><input id="planIcrBreakfast" type="number" step="0.1" min="0"></div>
+              <div class="plan-field"><label>☀️ เที่ยง (g/unit)</label><input id="planIcrLunch" type="number" step="0.1" min="0"></div>
+              <div class="plan-field"><label>🌙 เย็น (g/unit)</label><input id="planIcrDinner" type="number" step="0.1" min="0"></div>
+              <div class="plan-field"><label>🍎 ของว่าง (g/unit)</label><input id="planIcrSnack" type="number" step="0.1" min="0"></div>
+            </div>
+          </div>
+
+          <div class="plan-group full">
+            <h3>🎯 Correction</h3>
+            <label class="plan-check"><input type="checkbox" id="planCorrectionEnabled"> เปิดใช้งาน Correction — เปิดเฉพาะเมื่อแพทย์กำหนด</label>
+            <div class="edit-grid">
+              <div class="plan-field"><label>Target glucose (mg/dL)</label><input id="planCorrectionTarget" type="number" step="1" min="0"></div>
+              <div class="plan-field"><label>ISF / Correction Factor</label><input id="planCorrectionIsf" type="number" step="0.1" min="0"></div>
+            </div>
+          </div>
+
+          <div class="plan-group full">
+            <h3>🩸 เกณฑ์แปลผล</h3>
+            <p class="helper">เป็นค่าที่ใช้โดย backend สำหรับการจัดระดับ/Alert ผู้ป่วย ควรผ่านการอนุมัติของทีมคลินิกก่อนใช้งานจริง</p>
+            <div class="edit-grid">
+              <div class="plan-field"><label>Low threshold</label><input id="planLowThreshold" type="number" step="1" min="0"></div>
+              <div class="plan-field"><label>Fasting upper</label><input id="planFastingUpper" type="number" step="1" min="0"></div>
+              <div class="plan-field"><label>Postmeal upper</label><input id="planPostmealUpper" type="number" step="1" min="0"></div>
+              <div class="plan-field"><label>Very high threshold</label><input id="planVeryHigh" type="number" step="1" min="0"></div>
+            </div>
+          </div>
+        </div>
+        <div class="plan-actions">
+          <button type="button" class="secondary-btn" onclick="saveClinicalDraft()">💾 บันทึกร่าง</button>
+          <button type="button" class="primary-btn" onclick="publishClinicalPlan()">✅ เผยแพร่แผนให้ผู้ป่วย</button>
+        </div>
+        <p class="plan-status" id="clinicalPlanStatus"></p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
 <script>
-const LIFF_ID='2011121393-snPTo1BO';const GAS_WEB_APP_URL='https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpclxW8jOqIqbLbUrSiftt4hzyxr5dtvhKjIAyL-vx74AgO_UP-zEk4/exec';let myIdToken=null;let me=null;let data=null;let filter='all';
-async function init(){document.getElementById('loading').style.display='block';document.getElementById('dashboard').style.display='none';document.getElementById('denied').style.display='none';try{await liff.init({liffId:LIFF_ID});if(!liff.isLoggedIn()){liff.login();return}myIdToken=liff.getIDToken?.();const r=await api({type:'nurseData',idToken:myIdToken});if(!r.authorized)throw Error(r.error||'ไม่มีสิทธิ์');me=r.actor||{role:r.role};data=r;document.getElementById('roleBadge').textContent=labelRole(r.role);document.getElementById('loading').style.display='none';document.getElementById('dashboard').style.display='block';document.getElementById('overCard').classList.toggle('alert',r.summary.overTargetToday>0);document.getElementById('hypoCard').classList.toggle('alert',r.summary.hypoToday>0);document.getElementById('sumTotal').textContent=r.summary.totalPatients;document.getElementById('sumLogged').textContent=r.summary.loggedToday;document.getElementById('sumOver').textContent=r.summary.overTargetToday;document.getElementById('sumHypo').textContent=r.summary.hypoToday;document.getElementById('careTeamCard').style.display=r.role==='ADMIN'?'block':'none';render();if(r.role==='ADMIN')renderCareTeam()}catch(e){document.getElementById('loading').style.display='none';document.getElementById('denied').style.display='block';document.getElementById('deniedMsg').textContent=e.message||'ไม่ผ่านการยืนยัน'}}
-async function api(body){const r=await fetch(GAS_WEB_APP_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)});return r.json()}
-function labelRole(r){return({ADMIN:'Admin',DOCTOR:'Doctor',NURSE:'Nurse'})[r]||r}
-function setFilter(v,b){filter=v;document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));b.classList.add('active');render()}
-function status(p){if(p.hypoToday)return['warn','⚠ น้ำตาลต่ำ'];if(p.todayCarbs>p.target)return['warn','คาร์บเกินเป้า'];if(p.weightMissing)return['none','ต้องกรอกน้ำหนัก'];if(p.todayCarbs>0)return['good','บันทึกวันนี้'];return['none','ยังไม่บันทึก']}
-function render(){if(!data)return;const q=(document.getElementById('search').value||'').trim().toLowerCase();const arr=data.patients.filter(p=>{const [s]=status(p);if(filter==='hypo'&&s!=='warn')return false;if(filter==='over'&&p.todayCarbs<=p.target)return false;if(filter==='missing'&&!p.weightMissing)return false;return !q||(p.name||'').toLowerCase().includes(q)});document.getElementById('count').textContent=`แสดง ${arr.length} จาก ${data.patients.length} คน`;document.getElementById('list').innerHTML=arr.map((p,i)=>patientCard(p,i)).join('')||'<p class="muted">ไม่พบผู้ป่วย</p>'}
-function patientCard(p,i){const [cls,label]=status(p);const canClinical=['ADMIN','DOCTOR'].includes(data.role)&&((data.role==='ADMIN')||p.doctorId===me.userId);const canWeight=['ADMIN','DOCTOR','NURSE'].includes(data.role);const activity=(p.activity||[]).map(a=>`<div class="row"><span>${icon(a.type)} ${a.label}</span><span>${a.value}</span></div>`).join('');return `<div class="patient" id="p${i}"><div class="patient-head" onclick="togglePatient('p${i}')"><div><div class="name">${escapeHtml(p.name)}</div><div class="meta">${p.todayCarbs}/${p.target} กรัมคาร์บ · ${p.regimen||'ยังไม่กำหนดแผน'}</div></div><span class="badge ${cls}">${label}</span></div><div class="body"><div class="row"><span>น้ำหนัก</span><span>${p.weightKg?p.weightKg+' kg':'ยังไม่มี'}</span></div><div class="row"><span>Doctor</span><span>${p.doctorId||'-'}</span></div><div class="row"><span>Nurse</span><span>${p.nurseId||'-'}</span></div><div class="row"><span>Bolus</span><span>${p.bolusMethod||'-'}</span></div><div class="row"><span>Correction</span><span>${p.glucoseTarget&&p.isf?'เปิด/ตั้งค่าแล้ว':'ปิดหรือยังไม่ได้ตั้ง'}</span></div><div style="margin-top:8px">${activity||'<span class="muted">ยังไม่มีรายการล่าสุด</span>'}</div>${canWeight?weightForm(p):''}${canClinical?clinicalForm(p):''}${data.role==='ADMIN'?assignmentForm(p,i):''}<div class="message"><textarea id="msg-${i}" rows="2" placeholder="ข้อความถึงผู้ป่วยผ่าน LINE"></textarea><button class="msg-btn" onclick="sendMessage('${p.userId}',${i})">ส่งข้อความถึงผู้ป่วย</button><div class="muted" id="msgStatus-${i}" style="text-align:center;margin-top:6px"></div></div></div></div>`}
-function assignmentForm(p,i){const team=data.careTeam||[];const doctors=team.filter(u=>u.role==='DOCTOR');const nurses=team.filter(u=>u.role==='NURSE');return `<div style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px"><div class="small-label">ผู้ดูแลหลัก — Admin เท่านั้น</div><div class="grid2"><div><label class="small-label">Doctor</label><select id="doc-${i}"><option value="">ไม่กำหนด</option>${doctors.map(u=>`<option value="${escapeHtml(u.userId)}" ${p.doctorId===u.userId?'selected':''}>${escapeHtml(u.name||u.userId)}</option>`).join('')}</select></div><div><label class="small-label">Nurse</label><select id="nur-${i}"><option value="">ไม่กำหนด</option>${nurses.map(u=>`<option value="${escapeHtml(u.userId)}" ${p.nurseId===u.userId?'selected':''}>${escapeHtml(u.name||u.userId)}</option>`).join('')}</select></div></div><button class="save" onclick="saveAssignment('${p.userId}',${i})">บันทึกผู้ดูแล</button><div class="muted" id="assign-${i}" style="text-align:center;margin-top:6px"></div></div>`}
-function weightForm(p){return `<div style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px"><label class="small-label">ปรับปรุงน้ำหนัก (kg)</label><input type="number" id="weight-${cssId(p.userId)}" value="${p.weightKg||''}" placeholder="เช่น 60"><button class="save" onclick="saveWeight('${p.userId}')">บันทึกน้ำหนัก</button></div>`}
-function clinicalForm(p){return `<div style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px"><div class="small-label">แผนอินซูลิน — Doctor/Admin เท่านั้น</div><div class="grid2"><div><label class="small-label">Regimen</label><input id="reg-${cssId(p.userId)}" value="${p.regimen||''}" placeholder="เช่น Basal + Bolus"></div><div><label class="small-label">Basal coefficient</label><input type="number" id="bc-${cssId(p.userId)}" placeholder="แพทย์กำหนด" /></div><div><label class="small-label">Basal dose ที่แพทย์สั่ง</label><input type="number" id="bp-${cssId(p.userId)}" placeholder="unit/day" /></div><div><label class="small-label">ICR เช้า</label><input type="number" id="icr-${cssId(p.userId)}" placeholder="g/unit" /></div><div><label class="small-label">ICR เที่ยง</label><input type="number" id="icrl-${cssId(p.userId)}" placeholder="g/unit" /></div><div><label class="small-label">ICR เย็น</label><input type="number" id="icrd-${cssId(p.userId)}" placeholder="g/unit" /></div><div><label class="small-label">ICR ของว่าง</label><input type="number" id="icrs-${cssId(p.userId)}" placeholder="g/unit" /></div><div><label class="small-label">Correction Target</label><input type="number" id="ct-${cssId(p.userId)}" placeholder="mg/dL" /></div><div><label class="small-label">Correction ISF</label><input type="number" id="ci-${cssId(p.userId)}" placeholder="mg/dL/unit" /></div></div><div style="margin-top:8px"><label class="small-label">เปิดใช้ Correction</label><select id="ce-${cssId(p.userId)}"><option value="false">ปิด</option><option value="true">เปิด</option></select></div><div style="margin-top:8px"><label class="small-label">Bolus Method 1</label><select id="bm1-${cssId(p.userId)}"><option value="icr">ICR</option><option value="doctor_defined_1">สูตรแพทย์กำหนด — วิธี 1</option></select><input style="margin-top:6px" id="bl1-${cssId(p.userId)}" placeholder="ชื่อวิธีที่ 1"></div><div style="margin-top:8px"><label class="small-label">Bolus Method 2</label><select id="bm2-${cssId(p.userId)}"><option value="doctor_defined_2">สูตรแพทย์กำหนด — วิธี 2</option><option value="icr">ICR</option></select><input style="margin-top:6px" id="bl2-${cssId(p.userId)}" placeholder="ชื่อวิธีที่ 2"></div><div style="margin-top:8px"><label class="small-label">เลือกวิธีที่ใช้</label><select id="bsel-${cssId(p.userId)}"><option value="icr">ICR</option><option value="doctor_defined_1">วิธี 1</option><option value="doctor_defined_2">วิธี 2</option></select></div><button class="save" onclick="saveClinical('${p.userId}')">บันทึก Clinical Plan</button><div class="muted" id="planStatus-${cssId(p.userId)}" style="text-align:center;margin-top:6px"></div></div>`}
-function togglePatient(id){document.getElementById(id).classList.toggle('open')}
-function icon(t){return({carb:'🍚',glucose:'🩸',insulin:'💉'})[t]||'•'}function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}function cssId(s){return String(s||'').replace(/[^a-zA-Z0-9_-]/g,'_')}
-async function saveAssignment(patientId,i){const st=document.getElementById('assign-'+i);st.textContent='กำลังบันทึก…';try{const d=await api({type:'updatePatientAssignment',idToken:myIdToken,patientId,doctorId:document.getElementById('doc-'+i).value,nurseId:document.getElementById('nur-'+i).value,reason:'Admin กำหนดผู้ดูแล'});if(!d.ok)throw Error(d.error);st.textContent='บันทึกแล้ว';await init()}catch(e){st.textContent=e.message||'บันทึกไม่สำเร็จ'}}
-async function saveWeight(patientId){const el=document.getElementById('weight-'+cssId(patientId));const v=Number(el.value);try{const d=await api({type:'updatePatientSettings',idToken:myIdToken,targetUserId:patientId,weightKg:v});if(!d.ok)throw Error(d.error);await init()}catch(e){alert(e.message||'บันทึกไม่สำเร็จ')}}
-async function saveClinical(patientId){const id=cssId(patientId);const body={type:'updatePatientSettings',idToken:myIdToken,targetUserId:patientId,regimen:document.getElementById('reg-'+id).value,basalEnabled:true,basalCoefficient:document.getElementById('bc-'+id).value,basalPrescribedDose:document.getElementById('bp-'+id).value,bolusMethod1Code:document.getElementById('bm1-'+id).value,bolusMethod1Label:document.getElementById('bl1-'+id).value,bolusMethod2Code:document.getElementById('bm2-'+id).value,bolusMethod2Label:document.getElementById('bl2-'+id).value,selectedBolusMethod:document.getElementById('bsel-'+id).value,icrBreakfast:document.getElementById('icr-'+id).value,icrLunch:document.getElementById('icrl-'+id).value,icrDinner:document.getElementById('icrd-'+id).value,icrSnack:document.getElementById('icrs-'+id).value,correctionEnabled:document.getElementById('ce-'+id).value==='true',correctionTarget:document.getElementById('ct-'+id).value,correctionIsf:document.getElementById('ci-'+id).value,reason:'ปรับแผนการรักษาผ่านหลังบ้าน'};const st=document.getElementById('planStatus-'+id);st.textContent='กำลังบันทึก…';try{const d=await api(body);if(!d.ok)throw Error(d.error);st.textContent='บันทึกแล้ว';await init()}catch(e){st.textContent=e.message||'บันทึกไม่สำเร็จ'}}
-async function sendMessage(patientId,i){const el=document.getElementById('msg-'+i);const st=document.getElementById('msgStatus-'+i);if(!el.value.trim())return;st.textContent='กำลังส่ง…';try{const d=await api({type:'sendPatientMessage',idToken:myIdToken,patientId,message:el.value.trim()});st.textContent=d.ok?'ส่งแล้ว':(d.error||'ส่งไม่สำเร็จ')}catch(e){st.textContent='ส่งไม่สำเร็จ'}}
-function renderCareTeam(){if(data.role!=='ADMIN')return;const c=document.getElementById('careTeamList');const team=data.careTeam||[];c.innerHTML=team.map(u=>`<div class="row"><span>${escapeHtml(u.name)} <span class="muted">${u.role}</span></span><span>${u.userId}</span></div>`).join('')||'<p class="muted">ยังไม่มี Doctor/Nurse ใน Users</p>'}
-window.addEventListener('DOMContentLoaded',init);
-</script></body></html>
+// ====== ตั้งค่า ======
+const LIFF_ID = "2011121393-snPTo1BO";
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpclxW8jOqIqbLbUrSiftt4hzyxr5dtvhKjIAyL-vx74AgO_UP-zEk4/exec";
+
+const ACTIVITY_ICON = { carb: '🍚', glucose: '🩸', insulin: '💉' };
+let myIdToken = null;
+let autoRefreshTimer = null;
+let allPatientsSorted = [];
+let currentFilter = 'all';
+let myRole = '';
+let myUserId = '';
+let clinicalPatients = [];
+let selectedClinicalPatientId = '';
+let currentClinical = null;
+let currentClinicalDraft = null;
+
+const MOCK_DATA = {
+  summary: { totalPatients: 6, loggedToday: 4, overTargetToday: 2, hypoToday: 1 },
+  patients: [
+    { userId: 'demo1', name: 'สมชาย ใจดี', target: 200, glucoseTarget: 120, isf: 50, icr: 15, todayCarbs: 235, hypoToday: false, activity: [
+      { type: 'carb', label: 'เช้า · ข้าวสวย (1 ทัพพี)', value: '20 ก.' },
+      { type: 'glucose', label: 'น้ำตาล (หลังอาหาร)', value: '210 mg/dL' },
+      { type: 'insulin', label: 'คำนวณอินซูลิน', value: '4 หน่วย' },
+    ]},
+    { userId: 'demo2', name: 'สมหญิง รักสุข', target: 180, glucoseTarget: '', isf: '', icr: '', todayCarbs: 90, hypoToday: true, activity: [
+      { type: 'glucose', label: 'น้ำตาล (สุ่มตรวจ)', value: '58 mg/dL' },
+      { type: 'carb', label: 'เช้า · ขนมปังแผ่น (1 แผ่น)', value: '13 ก.' },
+    ]},
+    { userId: 'demo3', name: 'ประไพ แสงทอง', target: 220, glucoseTarget: '', isf: '', icr: '', todayCarbs: 0, hypoToday: false, activity: [] },
+    { userId: 'demo4', name: 'วิชัย ศรีสุข', target: 200, glucoseTarget: 130, isf: 45, icr: 12, todayCarbs: 210, hypoToday: false, activity: [
+      { type: 'carb', label: 'เย็น · ผัดไทย (1 จาน)', value: '55 ก.' },
+      { type: 'glucose', label: 'น้ำตาล (ก่อนอาหาร)', value: '145 mg/dL' },
+    ]},
+    { userId: 'demo5', name: 'มาลี บุญมาก', target: 190, glucoseTarget: '', isf: '', icr: '', todayCarbs: 150, hypoToday: false, activity: [
+      { type: 'carb', label: 'เที่ยง · กล้วยน้ำว้า (1 ผล)', value: '25 ก.' },
+    ]},
+    { userId: 'demo6', name: 'สุรชัย ทองดี', target: 200, glucoseTarget: '', isf: '', icr: '', todayCarbs: 0, hypoToday: false, activity: [] },
+  ]
+};
+
+async function init() {
+  document.getElementById('loadingState').style.display = 'block';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('deniedState').style.display = 'none';
+  document.getElementById('errorState').style.display = 'none';
+
+  if (!GAS_WEB_APP_URL.startsWith('https://script.google.com/')) {
+    myRole = 'NURSE';
+    myUserId = 'demo-care';
+    showDashboard(MOCK_DATA, true);
+    configureRoleUI('NURSE');
+    scheduleAutoRefresh();
+    return;
+  }
+
+  try {
+    if (!myIdToken) {
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) { liff.login(); return; }
+      myIdToken = (liff.getIDToken && liff.getIDToken()) || null;
+    }
+    if (!myIdToken) throw new Error('ไม่พบข้อมูลยืนยันตัวตนจาก LINE');
+
+    const res = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ type: 'nurseData', idToken: myIdToken }),
+    });
+    const data = await res.json();
+
+    if (!data.authorized) {
+      if (data.yourUserId) { showDenied(data.yourUserId); return; }
+      throw new Error(data.error || 'ไม่ผ่านการยืนยันตัวตน');
+    }
+    myRole = data.role || '';
+    myUserId = (data.actor && data.actor.userId) || '';
+    showDashboard(data, false);
+    configureRoleUI(data.role || '');
+    scheduleAutoRefresh();
+  } catch (err) {
+    // สำคัญ: ไม่ fallback ไปโชว์ข้อมูลสมมติเงียบๆ เพราะพยาบาลอาจเข้าใจผิดว่าเป็นข้อมูลผู้ป่วยจริง
+    showLoadError(err.message);
+  }
+}
+
+function scheduleAutoRefresh() {
+  if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+  autoRefreshTimer = setInterval(init, 5 * 60 * 1000); // รีเฟรชอัตโนมัติทุก 5 นาที
+}
+
+function showDenied(yourUserId) {
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('deniedState').style.display = 'block';
+  document.getElementById('yourUserId').textContent = yourUserId || '(ไม่พบ — ลองล็อกอินใหม่)';
+}
+
+function showLoadError(msg) {
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('errorState').style.display = 'block';
+  document.getElementById('errorMsg').textContent = msg || 'ไม่สามารถเชื่อมต่อกับระบบได้ ลองใหม่อีกครั้ง';
+}
+
+function showDashboard(data, isDemo) {
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('demoBanner').style.display = isDemo ? 'flex' : 'none';
+
+  document.getElementById('sumTotal').textContent = data.summary.totalPatients;
+  document.getElementById('sumLogged').textContent = data.summary.loggedToday;
+  document.getElementById('sumOver').textContent = data.summary.overTargetToday;
+  document.getElementById('sumHypo').textContent = data.summary.hypoToday;
+  document.getElementById('overCard').classList.toggle('alert', data.summary.overTargetToday > 0);
+  document.getElementById('hypoCard').classList.toggle('alert', data.summary.hypoToday > 0);
+
+  const rank = p => {
+    if (p.hypoToday) return 0;
+    if (p.todayCarbs > p.target) return 1;
+    if (p.todayCarbs > 0) return 2;
+    return 3;
+  };
+  allPatientsSorted = [...data.patients].sort((a, b) => rank(a) - rank(b) || (a.name || '').localeCompare(b.name || '', 'th'));
+
+  renderPatientList();
+}
+
+function patientStatus(p) {
+  if (p.hypoToday) return 'hypo';
+  if (p.todayCarbs > p.target) return 'over';
+  if (p.todayCarbs > 0) return 'logged';
+  return 'none';
+}
+
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderPatientList();
+}
+
+function renderPatientList() {
+  const searchText = (document.getElementById('patientSearch').value || '').trim().toLowerCase();
+
+  const filtered = allPatientsSorted.filter(p => {
+    const status = patientStatus(p);
+    if (currentFilter !== 'all' && status !== currentFilter) return false;
+    if (searchText && !(p.name || '').toLowerCase().includes(searchText)) return false;
+    return true;
+  });
+
+  document.getElementById('resultCount').textContent = `แสดง ${filtered.length} จาก ${allPatientsSorted.length} คน`;
+
+  if (filtered.length === 0) {
+    document.getElementById('patientList').innerHTML = '<p class="entry-empty" style="padding:12px 0;">ไม่พบผู้ป่วยที่ตรงเงื่อนไข</p>';
+    return;
+  }
+
+  document.getElementById('patientList').innerHTML = filtered.map((p, i) => renderPatientRow(p, i)).join('');
+}
+
+function renderPatientRow(p, idx) {
+  const status = patientStatus(p);
+  const statusClass = (status === 'hypo' || status === 'over') ? 'warn' : (status === 'logged' ? 'good' : 'none');
+  const label = status === 'hypo' ? '⚠ น้ำตาลต่ำ' : status === 'over' ? 'เกินเป้า' : status === 'logged' ? 'ปกติ' : 'ยังไม่บันทึก';
+
+  const activity = p.activity || [];
+  const entriesHtml = activity.length
+    ? activity.map(a => `<div class="entry-row"><span>${ACTIVITY_ICON[a.type] || '•'} ${a.label}</span><span class="tabular-nums">${a.value}</span></div>`).join('')
+    : '<div class="entry-empty">ยังไม่มีรายการล่าสุด</div>';
+
+  const uid = 'p' + idx;
+  return `
+    <div class="patient-row" id="row-${uid}">
+      <div class="patient-row-top" onclick="document.getElementById('row-${uid}').classList.toggle('expanded')">
+        <div>
+          <div class="patient-name">${p.name || 'ไม่ทราบชื่อ'}</div>
+          <div class="patient-meta tabular-nums">${p.todayCarbs}/${p.target} กรัมคาร์บวันนี้</div>
+        </div>
+        <span class="status-badge ${statusClass}">${label}</span>
+      </div>
+      <div class="patient-entries">
+        ${entriesHtml}
+        ${((myRole === 'DOCTOR' || myRole === 'ADMIN') ? `<button type="button" class="edit-toggle" onclick="showWorkspaceTab('clinical'); setTimeout(() => openClinicalPatient('${p.userId}'), 80)">💉 จัดการแผนอินซูลิน</button>` : '<div class="entry-empty" style="margin-top:8px">🔒 การแก้ไขแผนอินซูลินทำโดย Doctor/Admin</div>')}
+      </div>
+    </div>`;
+}
+
+function toggleEditForm(uid) {
+  document.getElementById('edit-' + uid).classList.toggle('open');
+}
+
+async function saveSettings(uid, targetUserId) {
+  const statusEl = document.getElementById('editStatus-' + uid);
+  const carbTarget = document.getElementById('editCarb-' + uid).value;
+  const glucoseTarget = document.getElementById('editGlucose-' + uid).value;
+  const isf = document.getElementById('editIsf-' + uid).value;
+  const icr = document.getElementById('editIcr-' + uid).value;
+
+  if (!GAS_WEB_APP_URL.startsWith('https://script.google.com/') || !myIdToken) {
+    statusEl.textContent = 'โหมดทดสอบ — ยังไม่บันทึกเข้าระบบจริง';
+    return;
+  }
+  statusEl.textContent = 'กำลังบันทึก...';
+  try {
+    const res = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ type: 'updatePatientSettings', idToken: myIdToken, targetUserId, carbTarget, glucoseTarget, isf, icr }),
+    });
+    const result = await res.json();
+    statusEl.textContent = result.ok ? 'บันทึกแล้ว — ผู้ป่วยจะเห็นค่าใหม่ครั้งถัดไปที่เปิดแอป' : 'บันทึกไม่สำเร็จ: ' + (result.error || '');
+  } catch (err) {
+    statusEl.textContent = 'บันทึกไม่สำเร็จ (เชื่อมต่อไม่ได้)';
+  }
+}
+
+
+
+function roleLabel(role) {
+  return ({ ADMIN: '⚙️ ADMIN', DOCTOR: '👨‍⚕️ DOCTOR', NURSE: '👩‍⚕️ NURSE' })[role] || role || 'ทีมดูแล';
+}
+
+function configureRoleUI(role) {
+  const pill = document.getElementById('rolePill');
+  const nav = document.getElementById('roleNav');
+  const clinicalBtn = document.getElementById('tabClinical');
+  if (pill) pill.textContent = roleLabel(role);
+  const title = document.getElementById('workspaceTitle');
+  const subtitle = document.getElementById('workspaceSubtitle');
+  if (role === 'DOCTOR') {
+    if (title) title.textContent = 'หลังบ้านทีมดูแล';
+    if (subtitle) subtitle.textContent = 'ผู้ป่วยและแผนอินซูลินของฉัน';
+    nav.style.display = 'flex'; clinicalBtn.style.display = '';
+    document.getElementById('editClinicalHint')?.remove();
+  } else if (role === 'ADMIN') {
+    if (title) title.textContent = 'หลังบ้านผู้ดูแลระบบ';
+    if (subtitle) subtitle.textContent = 'ผู้ป่วย สิทธิ์ และแผนการรักษา';
+    nav.style.display = 'flex'; clinicalBtn.style.display = '';
+  } else {
+    if (title) title.textContent = 'หลังบ้านพยาบาล';
+    if (subtitle) subtitle.textContent = 'ภาพรวมน้ำตาล คาร์บ และอินซูลินของผู้ป่วยวันนี้';
+    nav.style.display = 'flex'; clinicalBtn.style.display = 'none';
+  }
+  if (role !== 'DOCTOR' && role !== 'ADMIN') showWorkspaceTab('patients');
+}
+
+function showWorkspaceTab(tab) {
+  const patients = document.getElementById('patientsWorkspace');
+  const clinical = document.getElementById('clinicalWorkspace');
+  const a = document.getElementById('tabPatients');
+  const b = document.getElementById('tabClinical');
+  if (tab === 'clinical' && (myRole === 'DOCTOR' || myRole === 'ADMIN')) {
+    patients.style.display = 'none'; clinical.classList.add('open');
+    a.classList.remove('active'); b.classList.add('active');
+    loadClinicalPatients();
+  } else {
+    patients.style.display = ''; clinical.classList.remove('open');
+    a.classList.add('active'); b.classList.remove('active');
+  }
+}
+
+async function loadClinicalPatients() {
+  const box = document.getElementById('clinicalPatientList');
+  if (!box) return;
+  box.innerHTML = '<div class="state-msg">กำลังโหลดรายชื่อผู้ป่วย…</div>';
+  if (!GAS_WEB_APP_URL.startsWith('https://script.google.com/') || !myIdToken) {
+    box.innerHTML = '<div class="entry-empty">โหมดทดสอบ — เชื่อม backend ก่อนจึงจัดการแผนจริงได้</div>';
+    return;
+  }
+  try {
+    const res = await fetch(GAS_WEB_APP_URL, { method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify({type:'nurseData', idToken:myIdToken}) });
+    const data = await res.json();
+    if (!data.authorized) throw new Error(data.error || 'ไม่มีสิทธิ์');
+    clinicalPatients = data.patients || [];
+    renderClinicalPatientList();
+  } catch (err) {
+    box.innerHTML = `<div class="error-banner">โหลดรายชื่อไม่สำเร็จ: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function renderClinicalPatientList() {
+  const box = document.getElementById('clinicalPatientList');
+  const q = (document.getElementById('clinicalPatientSearch').value || '').trim().toLowerCase();
+  const rows = clinicalPatients.filter(p => !q || (p.name || '').toLowerCase().includes(q));
+  if (!rows.length) { box.innerHTML = '<div class="entry-empty">ไม่พบผู้ป่วย</div>'; return; }
+  box.innerHTML = rows.map(p => `
+    <div class="patient-row" style="cursor:pointer" onclick="openClinicalPatient('${p.userId}')">
+      <div class="patient-row-top">
+        <div><div class="patient-name">${escapeHtml(p.name || 'ไม่ทราบชื่อ')}</div><div class="patient-meta">${escapeHtml(p.regimen || 'ยังไม่มี Regimen')} · ${p.weightMissing ? '⚠️ ยังไม่มีน้ำหนัก' : 'น้ำหนักพร้อมใช้'}</div></div>
+        <span class="status-badge ${p.regimen ? 'good':'none'}">${p.regimen ? 'มีแผน':'ยังไม่มีแผน'}</span>
+      </div>
+    </div>`).join('');
+}
+
+function escapeHtml(value) {
+  return String(value == null ? '' : value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+}
+
+async function openClinicalPatient(patientId) {
+  selectedClinicalPatientId = patientId;
+  const editor = document.getElementById('clinicalEditorCard');
+  const statusEl = document.getElementById('clinicalPlanStatus');
+  editor.style.display = 'block';
+  statusEl.textContent = 'กำลังโหลดแผน…';
+  if (!GAS_WEB_APP_URL.startsWith('https://script.google.com/') || !myIdToken) { statusEl.textContent = 'โหมดทดสอบ'; return; }
+  try {
+    const res = await fetch(GAS_WEB_APP_URL, { method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify({type:'getClinicalPlan', idToken:myIdToken, patientId}) });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'โหลดแผนไม่สำเร็จ');
+    currentClinical = data.clinical || {};
+    currentClinicalDraft = data.draft || null;
+    fillClinicalForm(currentClinicalDraft || currentClinical, data.patient || {});
+    statusEl.textContent = currentClinicalDraft ? 'มีฉบับร่างที่ยังไม่ได้เผยแพร่' : 'กำลังแสดงแผนที่เผยแพร่แล้ว';
+    const state = document.getElementById('clinicalPlanState');
+    state.className = 'plan-state ' + (currentClinicalDraft ? 'draft' : (data.clinical && data.clinical.status === 'ACTIVE' ? '' : 'empty'));
+    state.textContent = currentClinicalDraft ? '🟡 มีฉบับร่าง — ผู้ป่วยยังไม่เห็นค่าที่แก้ไข' : (data.clinical && data.clinical.status === 'ACTIVE' ? '🟢 แผนที่เผยแพร่แล้ว' : '⚪ ยังไม่มีแผนที่เผยแพร่');
+    document.getElementById('clinicalPatientMeta').textContent = `${data.patient.name || 'ไม่ทราบชื่อ'} · LINE User ID: ${data.patient.patientId || patientId}`;
+  } catch (err) { statusEl.textContent = 'โหลดไม่สำเร็จ: ' + err.message; }
+}
+
+function fillClinicalForm(c, patient) {
+  const get = (k, d='') => c && c[k] !== undefined ? c[k] : d;
+  document.getElementById('planRegimen').value = get('regimen','');
+  document.getElementById('planBasalEnabled').checked = !!get('basalEnabled',false);
+  document.getElementById('planBasalMethod').value = get('basalMethod','weight_coefficient');
+  document.getElementById('planBasalCoefficient').value = get('basalCoefficient','');
+  document.getElementById('planBasalPrescribed').value = get('basalPrescribedDose','');
+  document.getElementById('planWeightRequired').checked = get('weightRequired',true) !== false;
+  document.getElementById('planSelectedBolus').value = get('selectedBolusMethod','');
+  document.getElementById('planBolus1Label').value = get('bolusMethod1Label','');
+  document.getElementById('planBolus1Config').value = get('bolusMethod1Config','');
+  document.getElementById('planBolus2Label').value = get('bolusMethod2Label','');
+  document.getElementById('planBolus2Config').value = get('bolusMethod2Config','');
+  document.getElementById('planIcrBreakfast').value = get('icrBreakfast','');
+  document.getElementById('planIcrLunch').value = get('icrLunch','');
+  document.getElementById('planIcrDinner').value = get('icrDinner','');
+  document.getElementById('planIcrSnack').value = get('icrSnack','');
+  document.getElementById('planCorrectionEnabled').checked = !!get('correctionEnabled',false);
+  document.getElementById('planCorrectionTarget').value = get('correctionTarget','');
+  document.getElementById('planCorrectionIsf').value = get('correctionIsf','');
+  document.getElementById('planLowThreshold').value = get('lowThreshold','');
+  document.getElementById('planFastingUpper').value = get('fastingUpper','');
+  document.getElementById('planPostmealUpper').value = get('postmealUpper','');
+  document.getElementById('planVeryHigh').value = get('veryHighThreshold','');
+}
+
+function collectClinicalForm() {
+  const num = id => { const v = document.getElementById(id).value; return v === '' ? '' : Number(v); };
+  return {
+    regimen: document.getElementById('planRegimen').value,
+    basalEnabled: document.getElementById('planBasalEnabled').checked,
+    basalMethod: document.getElementById('planBasalMethod').value,
+    basalCoefficient: num('planBasalCoefficient'),
+    basalPrescribedDose: num('planBasalPrescribed'),
+    weightRequired: document.getElementById('planWeightRequired').checked,
+    selectedBolusMethod: document.getElementById('planSelectedBolus').value,
+    bolusMethod1Code: 'doctor_defined_1',
+    bolusMethod1Label: document.getElementById('planBolus1Label').value,
+    bolusMethod1Config: document.getElementById('planBolus1Config').value,
+    bolusMethod2Code: 'doctor_defined_2',
+    bolusMethod2Label: document.getElementById('planBolus2Label').value,
+    bolusMethod2Config: document.getElementById('planBolus2Config').value,
+    icrBreakfast: num('planIcrBreakfast'),
+    icrLunch: num('planIcrLunch'),
+    icrDinner: num('planIcrDinner'),
+    icrSnack: num('planIcrSnack'),
+    correctionEnabled: document.getElementById('planCorrectionEnabled').checked,
+    correctionTarget: num('planCorrectionTarget'),
+    correctionIsf: num('planCorrectionIsf'),
+    lowThreshold: num('planLowThreshold'),
+    fastingUpper: num('planFastingUpper'),
+    postmealUpper: num('planPostmealUpper'),
+    veryHighThreshold: num('planVeryHigh')
+  };
+}
+
+async function saveClinicalDraft() {
+  if (!selectedClinicalPatientId) return;
+  const statusEl = document.getElementById('clinicalPlanStatus');
+  if (!myIdToken || !GAS_WEB_APP_URL.startsWith('https://script.google.com/')) { statusEl.textContent = 'โหมดทดสอบ — ยังไม่บันทึกร่าง'; return; }
+  statusEl.textContent = 'กำลังบันทึกร่าง…';
+  try {
+    const res = await fetch(GAS_WEB_APP_URL, { method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify({type:'saveClinicalDraft', idToken:myIdToken, patientId:selectedClinicalPatientId, plan:collectClinicalForm(), reason:'บันทึกฉบับร่างจากหลังบ้าน'}) });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'บันทึกร่างไม่สำเร็จ');
+    currentClinicalDraft = data.draft;
+    statusEl.textContent = 'บันทึกร่างแล้ว — ผู้ป่วยยังไม่เห็นค่าชุดนี้';
+    const state = document.getElementById('clinicalPlanState'); state.className='plan-state draft'; state.textContent='🟡 มีฉบับร่าง — ผู้ป่วยยังไม่เห็นค่าที่แก้ไข';
+  } catch (err) { statusEl.textContent = 'บันทึกไม่สำเร็จ: ' + err.message; }
+}
+
+async function publishClinicalPlan() {
+  if (!selectedClinicalPatientId) return;
+  const statusEl = document.getElementById('clinicalPlanStatus');
+  if (!confirm('ยืนยันเผยแพร่แผนนี้ให้ผู้ป่วยเห็นและใช้เป็นแผนปัจจุบันหรือไม่?')) return;
+  if (!myIdToken || !GAS_WEB_APP_URL.startsWith('https://script.google.com/')) { statusEl.textContent = 'โหมดทดสอบ — ยังไม่เผยแพร่'; return; }
+  statusEl.textContent = 'กำลังเผยแพร่…';
+  try {
+    const res = await fetch(GAS_WEB_APP_URL, { method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify({type:'publishClinicalPlan', idToken:myIdToken, patientId:selectedClinicalPatientId, plan:collectClinicalForm(), reason:'เผยแพร่แผนจากหลังบ้าน'}) });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'เผยแพร่ไม่สำเร็จ');
+    currentClinical = data.clinical;
+    currentClinicalDraft = null;
+    fillClinicalForm(currentClinical, data.patient || {});
+    statusEl.textContent = 'เผยแพร่แล้ว — ผู้ป่วยจะเห็นแผนใหม่เมื่อโหลดข้อมูลครั้งถัดไป';
+    const state = document.getElementById('clinicalPlanState'); state.className='plan-state'; state.textContent='🟢 แผนที่เผยแพร่แล้ว';
+  } catch (err) { statusEl.textContent = 'เผยแพร่ไม่สำเร็จ: ' + err.message; }
+}
+
+document.getElementById('clinicalPatientSearch')?.addEventListener('input', renderClinicalPatientList);
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
