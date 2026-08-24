@@ -67,6 +67,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'
       <div id="basalDetails" class="plan-grid"></div>
       <div class="info-strip">💡 ค่าอ้างอิงจากน้ำหนักใช้เพื่อประกอบแผนเท่านั้น ขนาดที่ใช้จริงต้องเป็นค่าที่แพทย์กำหนด</div>
       <div id="weightMissingStrip" class="warning-strip" style="display:none">⚠️ ระบบยังไม่มีน้ำหนักตัวของคุณ จึงยังคำนวณค่าอ้างอิงไม่ได้ <button type="button" class="btn-add" style="width:auto;padding:7px 10px;margin-left:auto" onclick="openWeightModal()">กรอกน้ำหนัก</button></div>
+      <div id="weightPendingStrip" class="warning-strip" style="display:none">⚠️ ระบบได้รับน้ำหนักแล้ว<br>กรุณารอทีมแพทย์ที่ดูแลยืนยันรับข้อมูล</div>
     </div>
 
     <div class="card" id="bolusCard" style="display:none">
@@ -119,7 +120,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'
   </div>
 </div>
 
-<div class="modal-backdrop" id="weightModal"><div class="modal"><h2>กรุณากรอกน้ำหนักตัว</h2><p id="weightModalText">แผน Basal ของคุณต้องใช้น้ำหนักตัวเพื่อคำนวณค่าอ้างอิง แพทย์เป็นผู้กำหนด coefficient ส่วนคุณสามารถกรอกน้ำหนักตัวได้</p><div class="field"><label class="field-label" for="weightInput">น้ำหนักตัว (กิโลกรัม)</label><input id="weightInput" type="number" min="1" max="500" step="0.1" placeholder="เช่น 60"></div><div id="weightError" class="danger-text" style="display:none;font-size:12px;margin-bottom:10px"></div><button class="btn-primary" onclick="saveMyWeight()">บันทึกน้ำหนัก</button><button class="btn-add" style="margin-top:8px" onclick="closeWeightModal()">กรอกภายหลัง</button></div></div>
+<div class="modal-backdrop" id="weightModal"><div class="modal"><h2>กรุณากรอกน้ำหนักตัว</h2><p id="weightModalText">แผน Basal ของคุณต้องใช้น้ำหนักตัว แต่ข้อมูลน้ำหนักที่คุณกรอกจะยังไม่ถูกนำไปคำนวณจนกว่าทีมแพทย์ที่ดูแลจะยืนยันรับข้อมูล</p><div class="field"><label class="field-label" for="weightInput">น้ำหนักตัว (กิโลกรัม)</label><input id="weightInput" type="number" min="1" max="500" step="0.1" placeholder="เช่น 60"></div><div id="weightError" class="danger-text" style="display:none;font-size:12px;margin-bottom:10px"></div><button class="btn-primary" onclick="saveMyWeight()">บันทึกน้ำหนัก</button><button class="btn-add" style="margin-top:8px" onclick="closeWeightModal()">กรอกภายหลัง</button></div></div>
 
 <script>
 const LIFF_ID='2011121393-V8xdJQ6r';
@@ -130,7 +131,7 @@ const THAI_DAYS=['อาทิตย์','จันทร์','อังคา�
 function renderThaiDate(){const d=new Date();document.getElementById('headerDate').textContent=`วัน${THAI_DAYS[d.getDay()]}ที่ ${d.getDate()} ${THAI_MONTHS[d.getMonth()]}`}
 async function initLiff(){try{await liff.init({liffId:LIFF_ID});if(!liff.isLoggedIn()){liff.login();return}const p=await liff.getProfile();profile.userId=p.userId;profile.displayName=p.displayName;myIdToken=liff.getIDToken?.();document.getElementById('patientName').textContent=p.displayName;document.getElementById('demoBanner').style.display='none';await fetchMySettings();}catch(e){document.getElementById('demoBanner').textContent='โหมดทดสอบ/เชื่อมต่อ LIFF ไม่สำเร็จ — ยังไม่ใช้ข้อมูลผู้ป่วยจริง';document.getElementById('patientName').textContent=profile.displayName}}
 async function api(body){const r=await fetch(GAS_WEB_APP_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)});return r.json()}
-async function fetchMySettings(){if(!myIdToken)return;try{const d=await api({type:'mySettings',idToken:myIdToken});if(!d.ok)throw Error(d.error||'โหลดแผนไม่สำเร็จ');settings=d;dailyTarget=Number(d.carbTarget)||200;updateRing();renderInsurancePlan();if(d.weightMissing)openWeightModal();}catch(e){document.getElementById('insulinPlanNotice').textContent='ไม่สามารถโหลดแผนการรักษาได้: '+e.message}}
+async function fetchMySettings(){if(!myIdToken)return;try{const d=await api({type:'mySettings',idToken:myIdToken});if(!d.ok)throw Error(d.error||'โหลดแผนไม่สำเร็จ');settings=d;dailyTarget=Number(d.carbTarget)||200;updateRing();renderInsurancePlan();if(d.weightMissing && !d.weightPendingReview)openWeightModal();}catch(e){document.getElementById('insulinPlanNotice').textContent='ไม่สามารถโหลดแผนการรักษาได้: '+e.message}}
 function switchTab(id,btn){document.querySelectorAll('.tab-panel').forEach(p=>p.hidden=true);document.getElementById('panel-'+id).hidden=false;document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');if(id==='history'&&!historyLoaded){historyLoaded=true;loadHistory()}}
 function selectTiming(v,btn){selectedTiming=v;btn.parentElement.querySelectorAll('.meal-chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}
 function selectMeal(v,btn){selectedMeal=v;btn.parentElement.querySelectorAll('.meal-chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}
@@ -149,7 +150,7 @@ function renderInsurancePlan(){
   const p=settings.patient||{};
   const status=document.getElementById('planStatusPill');
   const planExists=!!(c.regimen||c.basalEnabled||c.selectedBolusMethod||c.bolusMethod1Code||c.correctionEnabled);
-  const planActive=(c.status||'ACTIVE')==='ACTIVE' && planExists;
+  const planActive=(c.status||'DRAFT')==='PUBLISHED' && planExists;
   status.className='status-pill '+(planActive?'active':planExists?'pending':'off');
   status.textContent=planActive?'🟢 ใช้งานอยู่':planExists?'🟡 รอตรวจสอบ':'⚪ ยังไม่มีแผน';
   document.getElementById('planRegimen').textContent=c.regimen||'ยังไม่ได้กำหนด';
@@ -166,12 +167,10 @@ function renderInsurancePlan(){
     document.getElementById('basalDetails').innerHTML=`
       <div class="metric-grid">
         <div class="metric-card"><div class="metric-label">น้ำหนักตัว</div><div class="metric-value">${hasWeight?p.weightKg:'—'}</div><div class="metric-unit">kg</div></div>
-        <div class="metric-card"><div class="metric-label">Coefficient</div><div class="metric-value">${c.basalCoefficient||'—'}</div><div class="metric-unit">unit/kg/day</div></div>
-        <div class="metric-card"><div class="metric-label">ค่าอ้างอิง</div><div class="metric-value">${c.basalReferenceDose||'—'}</div><div class="metric-unit">unit/day</div></div>
-        <div class="metric-card"><div class="metric-label">ขนาดที่แพทย์กำหนด</div><div class="metric-value">${c.basalPrescribedDose||'—'}</div><div class="metric-unit">unit/day</div></div>
+        <div class="metric-card"><div class="metric-label">ขนาดที่แพทย์กำหนด</div><div class="metric-value">${c.basalPrescribedDose||'ยังไม่ได้กำหนด'}</div><div class="metric-unit">${c.basalPrescribedDose?'unit/day':'กรุณาสอบถามแพทย์'}</div></div>
       </div>
       <div class="plan-row"><span>วิธี</span><span>${c.basalMethod==='weight_coefficient'?'น้ำหนัก × coefficient':'กำหนดโดยแพทย์'}</span></div>`;
-    document.getElementById('weightMissingStrip').style.display=(c.weightRequired && !hasWeight)?'flex':'none';
+    document.getElementById('weightMissingStrip').style.display=(c.weightRequired && !hasWeight && !settings.weightPendingReview)?'flex':'none'; document.getElementById('weightPendingStrip').style.display=settings.weightPendingReview?'block':'none';
   }
 
   const bolus=document.getElementById('bolusCard');
@@ -193,16 +192,16 @@ function renderInsurancePlan(){
     document.getElementById('correctionIsf').textContent=c.correctionIsf||'—';
   }
 
-  document.getElementById('noInsulinPlan').style.display=planExists?'none':'block';
-  document.getElementById('insulinCalcCard').style.display=planExists?'block':'none';
+  document.getElementById('noInsulinPlan').style.display=planActive?'none':'block';
+  document.getElementById('insulinCalcCard').style.display=planActive?'block':'none';
   document.getElementById('insulinPlanNotice').textContent=
     !planExists?'ยังไม่มีแผนอินซูลินที่เผยแพร่สำหรับคุณ':
-    settings.weightMissing?'ต้องกรอกน้ำหนักเพื่อให้แผน Basal คำนวณค่าอ้างอิงได้':'แผนอินซูลินจากทีมดูแลถูกล็อกตามสิทธิ์ของคุณ';
-  document.getElementById('insulinPlanNotice').classList.toggle('warn',!!settings.weightMissing);
+    settings.weightPendingReview?'⚠️ ระบบได้รับน้ำหนักแล้ว กรุณารอทีมแพทย์ที่ดูแลยืนยันรับข้อมูล':settings.weightMissing?'ต้องกรอกน้ำหนักตัวของคุณตามแผน Basal':'แผนอินซูลินจากทีมแพทย์ผู้ดูแลถูกล็อกตามสิทธิ์ของคุณ';
+  document.getElementById('insulinPlanNotice').classList.toggle('warn',!!settings.weightMissing || !!settings.weightPendingReview);
 }
-async function calcInsulin(){const err=document.getElementById('insulinError');err.style.display='none';const meal=document.getElementById('insulinMeal').value,current=Number(document.getElementById('currentBgInput').value)||0,carbs=Number(document.getElementById('mealCarbInput').value)||0;if(current<=0&&carbs<=0){err.textContent='กรอกน้ำตาลปัจจุบันหรือคาร์บมื้อนี้อย่างน้อย 1 ค่า';err.style.display='block';return}try{const d=await api({type:'insulin',idToken:myIdToken,displayName:profile.displayName,meal,current,carbs,clientEntryId:crypto.randomUUID()});if(!d.ok){err.textContent=d.error||'คำนวณไม่สำเร็จ';err.style.display='block';return}const b=document.getElementById('insulinResult');b.style.display='block';b.className='result-box neutral';b.innerHTML=`<div class="result-title">ผลตามแผนการรักษา</div><div class="result-total">${d.totalDose} หน่วย</div><div class="result-breakdown">ส่วนมื้ออาหาร ${Number(d.mealDose).toFixed(1)} + ส่วนแก้ไข ${Number(d.correctionDose).toFixed(1)}</div><div class="result-footnote">Basal อ้างอิง ${d.basalReference||'-'} | Basal ที่แพทย์กำหนด ${d.basalPrescribed||'-'}</div><div class="result-footnote">ระบบคำนวณตามแผนที่แพทย์กำหนด ไม่ได้เป็นผู้กำหนดแผนการรักษา</div>`}catch(e){err.textContent='เชื่อมต่อ backend ไม่สำเร็จ';err.style.display='block'}}
+async function calcInsulin(){const err=document.getElementById('insulinError');if(!settings || !settings.canCalculate){err.textContent='ยังไม่มีแผนอินซูลินที่แพทย์อนุมัติและเผยแพร่ให้ใช้งาน';err.style.display='block';return}err.style.display='none';const meal=document.getElementById('insulinMeal').value,current=Number(document.getElementById('currentBgInput').value)||0,carbs=Number(document.getElementById('mealCarbInput').value)||0;if(current<=0&&carbs<=0){err.textContent='กรอกน้ำตาลปัจจุบันหรือคาร์บมื้อนี้อย่างน้อย 1 ค่า';err.style.display='block';return}try{const d=await api({type:'insulin',idToken:myIdToken,displayName:profile.displayName,meal,current,carbs,clientEntryId:crypto.randomUUID()});if(!d.ok){err.textContent=d.error||'คำนวณไม่สำเร็จ';err.style.display='block';return}const b=document.getElementById('insulinResult');b.style.display='block';b.className='result-box neutral';b.innerHTML=`<div class="result-title">ผลตามแผนการรักษา</div><div class="result-total">${d.totalDose} หน่วย</div><div class="result-breakdown">ส่วนมื้ออาหาร ${Number(d.mealDose).toFixed(1)} + ส่วนแก้ไข ${Number(d.correctionDose).toFixed(1)}</div><div class="result-footnote">Basal ที่แพทย์กำหนด ${d.basalPrescribed||'ยังไม่ได้กำหนด'}</div><div class="result-footnote">ระบบคำนวณตามแผนที่แพทย์กำหนด ไม่ได้เป็นผู้กำหนดแผนการรักษา</div>`}catch(e){err.textContent='เชื่อมต่อ backend ไม่สำเร็จ';err.style.display='block'}}
 function openWeightModal(){document.getElementById('weightModal').classList.add('show');setTimeout(()=>document.getElementById('weightInput').focus(),50)}function closeWeightModal(){document.getElementById('weightModal').classList.remove('show')}
-async function saveMyWeight(){const v=Number(document.getElementById('weightInput').value);const e=document.getElementById('weightError');if(!v||v<=0||v>500){e.textContent='กรอกน้ำหนักที่ถูกต้อง';e.style.display='block';return}e.style.display='none';try{const d=await api({type:'updateMyWeight',idToken:myIdToken,weightKg:v,source:'PATIENT'});if(!d.ok)throw Error(d.error);closeWeightModal();await fetchMySettings()}catch(err){e.textContent=err.message||'บันทึกไม่สำเร็จ';e.style.display='block'}}
+async function saveMyWeight(){const v=Number(document.getElementById('weightInput').value);const e=document.getElementById('weightError');if(!v||v<=0||v>500){e.textContent='กรอกน้ำหนักที่ถูกต้อง';e.style.display='block';return}e.style.display='none';try{const d=await api({type:'updateMyWeight',idToken:myIdToken,weightKg:v,source:'PATIENT'});if(!d.ok)throw Error(d.error);closeWeightModal();document.getElementById('weightPendingStrip').style.display='block';await fetchMySettings()}catch(err){e.textContent=err.message||'บันทึกไม่สำเร็จ';e.style.display='block'}}
 async function analyzeGlucose(){const value=Number(document.getElementById('glucoseInput').value);if(!value||value<=0){document.getElementById('glucoseError').textContent='กรอกค่าน้ำตาลก่อน';document.getElementById('glucoseError').style.display='block';return}document.getElementById('glucoseError').style.display='none';const box=document.getElementById('glucoseResult');box.style.display='block';box.className='result-box neutral';box.innerHTML='<div class="result-title">กำลังวิเคราะห์…</div>';try{const d=await api({type:'glucose',idToken:myIdToken,displayName:profile.displayName,value,timing:selectedTiming,clientEntryId:crypto.randomUUID()});if(!d.ok)throw Error(d.error);const cls=d.level==='low'||d.level==='very-high'?'danger':d.level==='high'?'warn':'good';box.className='result-box '+cls;box.innerHTML=`<div class="result-title">${d.level==='low'?'น้ำตาลต่ำ':d.level==='very-high'?'สูงมาก':d.level==='high'?'สูงกว่าเกณฑ์':'อยู่ในเกณฑ์'}</div><div class="result-message">${d.message}</div><div class="result-footnote">ระบบบันทึกและแปลผลจากค่าที่ส่งไปยัง backend</div>`}catch(e){box.className='result-box danger';box.innerHTML=`<div class="result-title">โหลดไม่สำเร็จ</div><div class="result-message">${e.message}</div>`}}
 async function loadHistory(){if(!myIdToken)return;const days=Number(document.getElementById('historyDays').value)||14;try{const d=await api({type:'myHistory',idToken:myIdToken,days});if(!d.ok)throw Error(d.error);historyData=d;document.getElementById('historyErrorNotice').style.display='none';renderHistory()}catch(e){document.getElementById('historyErrorNotice').style.display='flex';document.getElementById('historyErrorMsg').textContent=e.message||'โหลดประวัติไม่สำเร็จ'}}
 function renderHistory(){renderGlucoseChart(historyData.glucose||[]);renderCarbChart(historyData.carbDaily||[],historyData.patient?.target||dailyTarget);renderInsulinHistory(historyData.insulin||[])}
