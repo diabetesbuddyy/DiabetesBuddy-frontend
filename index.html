@@ -132,17 +132,20 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'
     <p class="consent-subtitle">ก่อนใช้ฟังก์ชันของ Diabetes Buddy ระบบต้องขอให้คุณอ่านและรับทราบว่ามีการเก็บ ใช้ และแบ่งปันข้อมูลใดภายในระบบตามบทบาทผู้ใช้งาน</p>
     <div class="consent-box"><h3>📌 ข้อมูลที่ระบบอาจเก็บ</h3><ul><li>ข้อมูลบัญชี LINE ที่ใช้ยืนยันตัวตน เช่น LINE User ID และชื่อที่แสดง</li><li>ข้อมูลสุขภาพที่คุณบันทึก เช่น ค่าน้ำตาลในเลือด เวลาและช่วงเวลาที่ตรวจ</li><li>ข้อมูลอาหารและคาร์โบไฮเดรตที่คุณบันทึก</li><li>ข้อมูลแผนอินซูลินที่ทีมแพทย์กำหนด และข้อมูลน้ำหนักที่ใช้ประกอบการดูแล</li><li>ประวัติการใช้งานที่จำเป็นต่อการตรวจสอบ เช่น การเปลี่ยนแผนและการให้ความยินยอม</li></ul></div>
     <div class="consent-box"><h3>👥 ใครสามารถเข้าถึงข้อมูล</h3><div class="consent-access"><div><b>ผู้ป่วย</b> — เข้าถึงข้อมูลและประวัติของตนเอง</div><div><b>แพทย์ผู้ดูแล</b> — เข้าถึงข้อมูลของผู้ป่วยที่ได้รับมอบหมาย และจัดการแผนการรักษาตามสิทธิ์</div><div><b>พยาบาลผู้ดูแล</b> — เข้าถึงข้อมูลของผู้ป่วยที่ได้รับมอบหมายเพื่อการติดตามและดูแลตามสิทธิ์</div><div><b>ผู้ดูแลระบบ (Admin)</b> — เข้าถึงข้อมูลตามหน้าที่ในการบริหารระบบและการตรวจสอบความปลอดภัย</div></div></div>
-    <div class="consent-box"><h3>🔎 ใช้ข้อมูลเพื่ออะไร</h3><ul><li>ให้บริการบันทึกและติดตามข้อมูลสุขภาพตามที่ระบบออกแบบไว้</li><li>แสดงข้อมูลให้ทีมดูแลที่ได้รับมอบหมาย</li><li>จัดทำประวัติ/รายงาน และแจ้งเตือนที่เกี่ยวข้องกับการดูแล</li><li>รักษาความถูกต้อง ตรวจสอบย้อนหลัง และรักษาความปลอดภัยของระบบ</li></ul></div>
+    <div class="consent-box"><h3>🔎 ใช้ข้อมูลเพื่ออะไร</h3><ul><li>ให้บริการบันทึกและติดตามข้อมูลสุขภาพตามที่ระบบออกแบบไว้</li><li>แสดงข้อมูลให้ทีมดูแลที่ได้รับมอบหมาย</li><li>จัดทำประวัติ/รายงาน และแจ้งเตือนที่เกี่ยวข้องกับการดูแล</li><li>รักษาความถูกต้อง ตรวจสอบย้อนหลัง และรักษาความปลอดภัยของระบบ</li></ul></div><div class="consent-box"><h3>📅 ระยะเวลาการใช้ข้อมูลและโครงการ</h3><ul><li>ข้อมูลจะถูกเก็บเพื่อใช้ในงานในโครงงานนี้ตั้งแต่วันที่ <b>24 สิงหาคม 2569</b> ถึงวันที่ <b>24 พฤศจิกายน 2569</b></li><li>โครงการจะสิ้นสุดลงในวันที่ <b>24 กุมภาพันธ์ 2570</b></li><li>เมื่อสิ้นสุดโครงการ จะดำเนินการลบข้อมูลตามนโยบายการจัดการข้อมูลของโครงการ</li></ul></div>
     <label class="consent-check"><input id="consentCheckbox" type="checkbox"><span>ฉันได้อ่านและรับทราบรายละเอียดข้างต้น และ<strong>ยินยอม</strong>ให้ Diabetes Buddy เก็บ ใช้ และเปิดเผยข้อมูลตามวัตถุประสงค์และสิทธิ์การเข้าถึงที่แจ้งไว้</span></label>
     <div class="consent-actions"><button class="btn-add" type="button" onclick="declineConsent()">ไม่ยินยอม / ปิด</button><button class="btn-primary" id="consentAcceptBtn" type="button" disabled onclick="acceptConsent()">ยืนยันการยินยอม</button></div>
     <div class="consent-help">การให้ความยินยอมจะถูกบันทึกพร้อมเวอร์ชันเอกสารและเวลาที่ให้ความยินยอม หากมีการเปลี่ยนแปลงสาระสำคัญ ระบบสามารถขอให้ยืนยันใหม่ได้</div>
     <div class="consent-legal-note">หมายเหตุ: หน้าจอนี้เป็นกลไกทางเทคนิคสำหรับการรับทราบและบันทึกความยินยอม ไม่ใช่คำรับรองว่าระบบปฏิบัติตามกฎหมายครบถ้วนทุกประการ ผู้ควบคุมข้อมูลควรตรวจ Privacy Notice, ฐานการประมวลผล, ระยะเวลาเก็บรักษา และช่องทางใช้สิทธิให้สอดคล้องกับการใช้งานจริง</div>
-    <div class="consent-version">Consent version: <span id="consentVersionLabel">กำลังโหลด…</span></div>
+    <div class="consent-version">Consent version: <span id="consentVersionLabel">กำลังโหลด…</span><br><span>ระยะใช้ข้อมูล: 24 ส.ค. 2569 – 24 พ.ย. 2569 • สิ้นสุดโครงการ: 24 ก.พ. 2570</span></div>
   </div>
 </div>
 
 <script>
 const LIFF_ID='2011121393-V8xdJQ6r';
+const PROJECT_DATA_USE_START='24 สิงหาคม 2569';
+const PROJECT_DATA_USE_END='24 พฤศจิกายน 2569';
+const PROJECT_END_DATE='24 กุมภาพันธ์ 2570';
 const GAS_WEB_APP_URL='https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpclxW8jOqIqbLbUrSiftt4hzyxr5dtvhKjIAyL-vx74AgO_UP-zEk4/exec';
 const FOOD_DB=[{name:'ข้าวสวย (1 ทัพพี)',carbs:20},{name:'ข้าวเหนียว (1 ก้อนเล็ก)',carbs:23},{name:'ขนมปังแผ่น (1 แผ่น)',carbs:13},{name:'ก๋วยเตี๋ยว (1 ชาม)',carbs:45},{name:'กล้วยน้ำว้า (1 ผล)',carbs:25},{name:'ส้ม (1 ผลกลาง)',carbs:15},{name:'นมจืด (1 แก้ว)',carbs:12},{name:'ผัดไทย (1 จาน)',carbs:55}];
 let profile={userId:null,displayName:'ผู้ป่วย'};let myIdToken=null;let todayLog=[];let selectedMeal='เช้า';let selectedTiming='fasting';let dailyTarget=200;let settings=null;let historyData=null;let historyLoaded=false;
