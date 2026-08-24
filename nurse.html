@@ -212,6 +212,7 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); fo
             <div class="plan-field"><label>วิธี Basal</label><select id="planBasalMethod"><option value="weight_coefficient">น้ำหนัก × coefficient</option><option value="doctor_defined">แพทย์กำหนดวิธีเฉพาะราย</option></select></div>
             <div class="plan-field"><label>ค่าสัมประสิทธิ์ (unit/kg/day) <span style="color:var(--warn)">แพทย์เท่านั้น</span></label><input id="planBasalCoefficient" type="number" step="0.01" min="0"></div>
             <div class="plan-field"><label>ขนาด Basal ที่แพทย์กำหนดจริง (unit/day)</label><input id="planBasalPrescribed" type="number" step="0.5" min="0"></div>
+            <div class="plan-field"><label>ค่าอ้างอิง Basal (ทีมแพทย์/พยาบาลเห็น)</label><div id="planBasalReferenceReadout" class="plan-readonly">—</div></div>
             <label class="plan-check"><input type="checkbox" id="planWeightRequired" checked> ต้องมีน้ำหนักก่อนคำนวณค่าอ้างอิง</label>
             <p class="helper">ค่าอ้างอิงจากน้ำหนักจะถูกคำนวณ/ยืนยันโดย backend เมื่อเผยแพร่แผน ไม่ใช่คำสั่งยาจากระบบ</p>
           </div>
@@ -555,10 +556,24 @@ function renderClinicalPatientList() {
   box.innerHTML = rows.map(p => `
     <div class="patient-row" style="cursor:pointer" onclick="openClinicalPatient('${p.userId}')">
       <div class="patient-row-top">
-        <div><div class="patient-name">${escapeHtml(p.name || 'ไม่ทราบชื่อ')}</div><div class="patient-meta">${escapeHtml(p.regimen || 'ยังไม่มี Regimen')} · ${p.weightMissing ? '⚠️ ยังไม่มีน้ำหนัก' : 'น้ำหนักพร้อมใช้'}</div></div>
+        <div><div class="patient-name">${escapeHtml(p.name || 'ไม่ทราบชื่อ')}</div><div class="patient-meta">${escapeHtml(p.regimen || 'ยังไม่มี Regimen')} · ${p.weightStatus==='PENDING_REVIEW' ? '🟡 น้ำหนักรอแพทย์ยืนยัน' : (p.weightMissing ? '⚠️ ยังไม่มีน้ำหนัก' : 'น้ำหนักยืนยันแล้ว')}</div></div>
         <span class="status-badge ${p.regimen ? 'good':'none'}">${p.regimen ? 'มีแผน':'ยังไม่มีแผน'}</span>
       </div>
+      ${myRole==='DOCTOR' && p.weightStatus==='PENDING_REVIEW' ? `<button type="button" class="warning-btn" style="margin-top:8px" onclick="event.stopPropagation(); confirmPatientWeight('${p.userId}')">✅ ยืนยันน้ำหนัก ${escapeHtml(p.weightKg)} kg</button>` : ''}
     </div>`).join('');
+}
+
+async function confirmPatientWeight(patientId) {
+  if (myRole !== 'DOCTOR') return;
+  if (!confirm('ยืนยันน้ำหนักของผู้ป่วยรายนี้ว่าได้รับและตรวจสอบแล้วหรือไม่?')) return;
+  try {
+    const res = await fetch(GAS_WEB_APP_URL, { method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify({type:'confirmPatientWeight', idToken:myIdToken, patientId}) });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'ยืนยันน้ำหนักไม่สำเร็จ');
+    await loadClinicalPatients();
+    if (selectedClinicalPatientId === patientId) { await openClinicalPatient(patientId); }
+    alert('ยืนยันน้ำหนักเรียบร้อยแล้ว');
+  } catch (err) { alert('ยืนยันน้ำหนักไม่สำเร็จ: ' + err.message); }
 }
 
 function escapeHtml(value) {
@@ -581,9 +596,9 @@ async function openClinicalPatient(patientId) {
     fillClinicalForm(currentClinicalDraft || currentClinical, data.patient || {});
     statusEl.textContent = currentClinicalDraft ? 'มีฉบับร่างที่ยังไม่ได้เผยแพร่' : 'กำลังแสดงแผนที่เผยแพร่แล้ว';
     const state = document.getElementById('clinicalPlanState');
-    state.className = 'plan-state ' + (currentClinicalDraft ? 'draft' : (data.clinical && data.clinical.status === 'ACTIVE' ? '' : 'empty'));
-    state.textContent = currentClinicalDraft ? '🟡 มีฉบับร่าง — ผู้ป่วยยังไม่เห็นค่าที่แก้ไข' : (data.clinical && data.clinical.status === 'ACTIVE' ? '🟢 แผนที่เผยแพร่แล้ว' : '⚪ ยังไม่มีแผนที่เผยแพร่');
-    document.getElementById('clinicalPatientMeta').textContent = `${data.patient.name || 'ไม่ทราบชื่อ'} · LINE User ID: ${data.patient.patientId || patientId}`;
+    state.className = 'plan-state ' + (currentClinicalDraft ? 'draft' : (data.clinical && data.clinical.status === 'PUBLISHED' ? '' : 'empty'));
+    state.textContent = currentClinicalDraft ? '🟡 มีฉบับร่าง — ผู้ป่วยยังไม่เห็นค่าที่แก้ไข' : (data.clinical && data.clinical.status === 'PUBLISHED' ? '🟢 แผนที่เผยแพร่แล้ว' : '⚪ ยังไม่มีแผนที่เผยแพร่');
+    document.getElementById('clinicalPatientMeta').textContent = `${data.patient.name || 'ไม่ทราบชื่อ'} · LINE User ID: ${data.patient.patientId || patientId}` + (data.patient.weightStatus==='PENDING_REVIEW' ? ' · 🟡 น้ำหนักรอแพทย์ยืนยัน' : data.patient.weightKg ? ` · น้ำหนัก ${data.patient.weightKg} kg` : '');
   } catch (err) { statusEl.textContent = 'โหลดไม่สำเร็จ: ' + err.message; }
 }
 
@@ -593,7 +608,7 @@ function fillClinicalForm(c, patient) {
   document.getElementById('planBasalEnabled').checked = !!get('basalEnabled',false);
   document.getElementById('planBasalMethod').value = get('basalMethod','weight_coefficient');
   document.getElementById('planBasalCoefficient').value = get('basalCoefficient','');
-  document.getElementById('planBasalPrescribed').value = get('basalPrescribedDose','');
+  document.getElementById('planBasalPrescribed').value = get('basalPrescribedDose',''); document.getElementById('planBasalReferenceReadout').textContent = get('basalReferenceDose','—') || '—';
   document.getElementById('planWeightRequired').checked = get('weightRequired',true) !== false;
   document.getElementById('planSelectedBolus').value = get('selectedBolusMethod','');
   document.getElementById('planBolus1Label').value = get('bolusMethod1Label','');
