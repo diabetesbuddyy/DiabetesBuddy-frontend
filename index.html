@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="th">
 <head>
 <meta charset="utf-8">
@@ -233,6 +233,152 @@ async function calcInsulin(){const err=document.getElementById('insulinError');i
 function openWeightModal(){document.getElementById('weightModal').classList.add('show');setTimeout(()=>document.getElementById('weightInput').focus(),50)}function closeWeightModal(){document.getElementById('weightModal').classList.remove('show')}
 async function saveMyWeight(){const v=Number(document.getElementById('weightInput').value);const e=document.getElementById('weightError');if(!v||v<=0||v>500){e.textContent='กรอกน้ำหนักที่ถูกต้อง';e.style.display='block';return}e.style.display='none';try{const d=await api({type:'updateMyWeight',idToken:myIdToken,weightKg:v,source:'PATIENT'});if(!d.ok)throw Error(d.error);closeWeightModal();document.getElementById('weightPendingStrip').style.display='block';await fetchMySettings()}catch(err){e.textContent=err.message||'บันทึกไม่สำเร็จ';e.style.display='block'}}
 async function analyzeGlucose(){const value=Number(document.getElementById('glucoseInput').value);if(!value||value<=0){document.getElementById('glucoseError').textContent='กรอกค่าน้ำตาลก่อน';document.getElementById('glucoseError').style.display='block';return}document.getElementById('glucoseError').style.display='none';const box=document.getElementById('glucoseResult');box.style.display='block';box.className='result-box neutral';box.innerHTML='<div class="result-title">กำลังวิเคราะห์…</div>';try{const d=await api({type:'glucose',idToken:myIdToken,displayName:profile.displayName,value,timing:selectedTiming,clientEntryId:crypto.randomUUID()});if(!d.ok)throw Error(d.error);const cls=d.level==='low'||d.level==='very-high'?'danger':d.level==='high'?'warn':'good';box.className='result-box '+cls;box.innerHTML=`<div class="result-title">${d.level==='low'?'น้ำตาลต่ำ':d.level==='very-high'?'สูงมาก':d.level==='high'?'สูงกว่าเกณฑ์':'อยู่ในเกณฑ์'}</div><div class="result-message">${d.message}</div><div class="result-footnote">ระบบบันทึกและแปลผลจากค่าที่ส่งไปยัง backend</div>`}catch(e){box.className='result-box danger';box.innerHTML=`<div class="result-title">โหลดไม่สำเร็จ</div><div class="result-message">${e.message}</div>`}}
+async function initLiff(){
+  try{
+    await liff.init({liffId:LIFF_ID});
+    if(!liff.isLoggedIn()){
+      liff.login();
+      return;
+    }
+
+    const p=await liff.getProfile();
+    profile.userId=p.userId;
+    profile.displayName=p.displayName;
+    myIdToken=liff.getIDToken?.() || null;
+
+    if(!myIdToken){
+      throw new Error('ไม่พบข้อมูลยืนยันตัวตนจาก LINE');
+    }
+
+    document.getElementById('patientName').textContent=p.displayName;
+    document.getElementById('demoBanner').style.display='none';
+
+    // โหลดข้อมูลรายการวันนี้ไว้ก่อน แต่ยังไม่เรียกข้อมูลสุขภาพจาก backend
+    loadTodayCarbLog();
+
+    // สำคัญ: ตรวจ Consent ก่อนเปิดใช้งานข้อมูลสุขภาพ/ฟังก์ชันที่เกี่ยวข้อง
+    await checkConsentAndContinue();
+  }catch(e){
+    const banner=document.getElementById('demoBanner');
+    banner.style.display='flex';
+    banner.textContent='เชื่อมต่อ Diabetes Buddy ไม่สำเร็จ: '+(e.message||e);
+    document.getElementById('patientName').textContent=profile.displayName;
+  }
+}
+
+async function api(body){
+  const r=await fetch(GAS_WEB_APP_URL,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify(body)
+  });
+
+  let data;
+  try{
+    data=await r.json();
+  }catch(e){
+    throw new Error('Backend ตอบกลับไม่ใช่ JSON');
+  }
+
+  if(!r.ok){
+    throw new Error(data.error||('HTTP '+r.status));
+  }
+
+  return data;
+}
+
+async function checkConsentAndContinue(){
+  if(!myIdToken) throw new Error('ไม่พบ ID token ของ LINE');
+
+  try{
+    const d=await api({type:'getConsentStatus',idToken:myIdToken});
+
+    if(!d.ok){
+      throw new Error(d.error||'ไม่สามารถตรวจสอบสถานะความยินยอมได้');
+    }
+
+    document.getElementById('consentVersionLabel').textContent=d.version||CONSENT_VERSION_HINT||'—';
+
+    if(d.required){
+      // แสดง Consent หลังจาก LIFF init → profile → ID token → checkConsent
+      showConsentModal();
+      return;
+    }
+
+    await fetchMySettings();
+    await maybeStartReportMode();
+  }catch(e){
+    const notice=document.getElementById('insulinPlanNotice');
+    if(notice){
+      notice.textContent='ไม่สามารถตรวจสอบความยินยอมได้: '+(e.message||e);
+      notice.classList.add('warn');
+    }
+    throw e;
+  }
+}
+
+function showConsentModal(){
+  const modal=document.getElementById('consentModal');
+  if(!modal) return;
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
+}
+
+function hideConsentModal(){
+  const modal=document.getElementById('consentModal');
+  if(!modal) return;
+  modal.classList.remove('show');
+  modal.setAttribute('aria-hidden','true');
+  document.body.style.overflow='';
+}
+
+function declineConsent(){
+  try{
+    if(window.liff&&liff.isInClient&&liff.isInClient()){
+      liff.closeWindow();
+      return;
+    }
+  }catch(e){}
+
+  alert('คุณยังไม่ได้ให้ความยินยอม จึงยังไม่สามารถใช้งานฟังก์ชันที่เก็บข้อมูลสุขภาพของ Diabetes Buddy ได้');
+}
+
+async function acceptConsent(){
+  const cb=document.getElementById('consentCheckbox');
+  const btn=document.getElementById('consentAcceptBtn');
+  if(!cb || !cb.checked) return;
+
+  btn.disabled=true;
+  btn.textContent='กำลังบันทึก…';
+
+  try{
+    const d=await api({type:'recordConsent',idToken:myIdToken,consent:true});
+
+    if(!d.ok){
+      throw new Error(d.error||'บันทึกความยินยอมไม่สำเร็จ');
+    }
+
+    hideConsentModal();
+    await fetchMySettings();
+    await maybeStartReportMode();
+  }catch(e){
+    alert(e.message||'ไม่สามารถบันทึกความยินยอมได้');
+    btn.disabled=false;
+    btn.textContent='ยืนยันการยินยอม';
+  }
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const cb=document.getElementById('consentCheckbox');
+  const btn=document.getElementById('consentAcceptBtn');
+  if(cb&&btn){
+    cb.addEventListener('change',()=>{
+      btn.disabled=!cb.checked;
+    });
+  }
+});
+
 async function maybeStartReportMode(){if(!reportMode||!myIdToken)return;reportMode=false;const historyBtn=document.getElementById('tab-history');switchTab('history',historyBtn);await loadHistory();setTimeout(()=>requestPdfReport(),300)}
 async function loadHistory(){if(!myIdToken)return;const days=Number(document.getElementById('historyDays').value)||14;try{const d=await api({type:'myHistory',idToken:myIdToken,days});if(!d.ok)throw Error(d.error);historyData=d;document.getElementById('historyErrorNotice').style.display='none';renderHistory()}catch(e){document.getElementById('historyErrorNotice').style.display='flex';document.getElementById('historyErrorMsg').textContent=e.message||'โหลดประวัติไม่สำเร็จ'}}
 function renderHistory(){renderGlucoseChart(historyData.glucose||[]);renderCarbChart(historyData.carbDaily||[],historyData.patient?.target||dailyTarget);renderInsulinHistory(historyData.insulin||[])}
