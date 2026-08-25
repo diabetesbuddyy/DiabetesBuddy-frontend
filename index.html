@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="th">
 <head>
 <meta charset="utf-8">
@@ -164,6 +164,83 @@ function loadTodayCarbLog(){carbLogDate=getBangkokDateKey();clearStaleCarbStorag
 function saveTodayCarbLog(){try{if(!getCarbStorageKey())return;localStorage.setItem(getCarbStorageKey(),JSON.stringify({date:carbLogDate,entries:todayLog,savedAt:new Date().toISOString()}))}catch(e){}}
 function cleanupCarbLogIfNewDay(){const now=getBangkokDateKey();if(carbLogDate&&now!==carbLogDate){todayLog=[];carbLogDate=now;clearStaleCarbStorage();refreshCarbUI(true)}}
 function refreshCarbUI(persist=true){if(persist)saveTodayCarbLog();renderLog();updateRing();updateCarbModeUI()}
+async function fetchMySettings(){
+  if(!myIdToken) return;
+  try{
+    const d=await api({type:'mySettings',idToken:myIdToken});
+    if(!d.ok) throw new Error(d.error||'โหลดแผนไม่สำเร็จ');
+    settings=d;
+    dailyTarget=Number(d.carbTarget)||200;
+    updateRing();
+    renderInsurancePlan();
+    if(d.weightMissing && !d.weightPendingReview) openWeightModal();
+  }catch(e){
+    const notice=document.getElementById('insulinPlanNotice');
+    if(notice) notice.textContent='ไม่สามารถโหลดแผนการรักษาได้: '+(e.message||e);
+  }
+}
+
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.hidden=true);
+  const panel=document.getElementById('panel-'+id);
+  if(panel) panel.hidden=false;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  if(id==='carb' && !foodDataLoaded) ensureFoodDataLoaded().catch(e=>{
+    const fe=document.getElementById('formError');
+    if(fe){fe.style.display='block';fe.textContent=e.message;}
+  });
+  if(id==='history' && !historyLoaded){
+    historyLoaded=true;
+    loadHistory();
+  }
+}
+
+function selectTiming(v,btn){
+  selectedTiming=v;
+  if(btn && btn.parentElement){
+    btn.parentElement.querySelectorAll('.meal-chip').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+}
+
+function selectMeal(v,btn){
+  selectedMeal=v;
+  if(btn && btn.parentElement){
+    btn.parentElement.querySelectorAll('.meal-chip').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+}
+
+function populateFood(){
+  const s=document.getElementById('foodSelect');
+  if(!s || !window.DiabetesBuddyFoodDB) return;
+  if(s.options.length) return;
+  window.DiabetesBuddyFoodDB.forEach((f,i)=>{
+    const o=document.createElement('option');
+    o.value=i;
+    o.textContent=f.name;
+    s.appendChild(o);
+  });
+  updatePreview();
+}
+
+function updatePreview(){
+  const s=document.getElementById('foodSelect');
+  const db=window.DiabetesBuddyFoodDB||[];
+  if(!s || !db.length) return;
+  const f=db[Number(s.value)||0];
+  const q=Math.max(0,Number(document.getElementById('qtyInput').value)||0);
+  if(!f) return;
+  document.getElementById('carbPreview').textContent=`≈ ${Math.round(f.carbs*q)} กรัมคาร์บ`;
+}
+
+function totalCarbs(){
+  return todayLog
+    .filter(e=>e && e.syncStatus!=='VOID')
+    .reduce((sum,e)=>sum+Number(e.carbs||0),0);
+}
+
 async function ensureFoodDataLoaded(){if(foodDataLoaded)return;if(foodDataLoading)return foodDataLoading;foodDataLoading=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='food-data.js';s.defer=true;s.onload=()=>{foodDataLoaded=true;foodDataLoading=null;populateFood();resolve()};s.onerror=()=>{foodDataLoading=null;reject(new Error('โหลดฐานข้อมูลอาหารไม่สำเร็จ'))};document.head.appendChild(s)});return foodDataLoading}
 async function addEntry(){cleanupCarbLogIfNewDay();try{await ensureFoodDataLoaded()}catch(e){const fe=document.getElementById('formError');fe.style.display='block';fe.textContent=e.message;return}const f=window.DiabetesBuddyFoodDB?.[Number(document.getElementById('foodSelect').value)||0],q=Number(document.getElementById('qtyInput').value)||0;if(!f||q<=0){const e=document.getElementById('formError');e.style.display='block';e.textContent='เลือกอาหารและใส่จำนวนก่อน';return}document.getElementById('formError').style.display='none';const entry={clientEntryId:crypto.randomUUID(),meal:selectedMeal,food:f.name,qty:q,carbs:Math.round(f.carbs*q),syncStatus:'PENDING',loggedDate:carbLogDate,retryCount:0,nextRetryAt:0};todayLog.push(entry);refreshCarbUI(true);if(carbSyncMode==='auto')await syncEntry(entry);scheduleCarbRetry()}
 async function syncEntry(entry){if(!entry||entry.syncStatus==='SYNCED'||entry.syncStatus==='VOID'||entry.syncStatus==='SYNCING')return;if(!myIdToken){entry.syncStatus='PENDING';refreshCarbUI(true);scheduleCarbRetry();return}entry.syncStatus='SYNCING';refreshCarbUI(true);try{const d=await api({type:'carb',idToken:myIdToken,displayName:profile.displayName,entries:[{...entry}]});if(!d.ok)throw Error(d.error||'ส่งข้อมูลไม่สำเร็จ');entry.syncStatus='SYNCED';entry.retryCount=0;entry.nextRetryAt=0}catch(e){entry.syncStatus='PENDING';entry.retryCount=(Number(entry.retryCount)||0)+1;const delay=RETRY_DELAYS_MS[Math.min(entry.retryCount-1,RETRY_DELAYS_MS.length-1)];entry.nextRetryAt=Date.now()+delay}refreshCarbUI(true);scheduleCarbRetry()}
@@ -253,10 +330,7 @@ async function initLiff(){
     document.getElementById('patientName').textContent=p.displayName;
     document.getElementById('demoBanner').style.display='none';
 
-    // โหลดข้อมูลรายการวันนี้ไว้ก่อน แต่ยังไม่เรียกข้อมูลสุขภาพจาก backend
-    loadTodayCarbLog();
-
-    // สำคัญ: ตรวจ Consent ก่อนเปิดใช้งานข้อมูลสุขภาพ/ฟังก์ชันที่เกี่ยวข้อง
+    // ตรวจ Consent ก่อนโหลดข้อมูลสุขภาพจาก backend
     await checkConsentAndContinue();
   }catch(e){
     const banner=document.getElementById('demoBanner');
@@ -306,6 +380,7 @@ async function checkConsentAndContinue(){
     }
 
     await fetchMySettings();
+    loadTodayCarbLog();
     await maybeStartReportMode();
   }catch(e){
     const notice=document.getElementById('insulinPlanNotice');
@@ -361,6 +436,7 @@ async function acceptConsent(){
 
     hideConsentModal();
     await fetchMySettings();
+    loadTodayCarbLog();
     await maybeStartReportMode();
   }catch(e){
     alert(e.message||'ไม่สามารถบันทึกความยินยอมได้');
