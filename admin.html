@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Admin — Diabetes Buddy</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600&family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f5f1;--surface:#fff;--ink:#263029;--muted:#687168;--brand:#315b4d;--brand2:#e3ede8;--border:#dfe5dd;--good:#4d8453;--goodbg:#e8f2e9;--bad:#aa4e40;--badbg:#f9e9e6;--warn:#8a5a12;--warnbg:#fcf3e2}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Sarabun,sans-serif}.app{max-width:900px;margin:auto;padding:0 18px 40px}.hero{margin:0 -18px 18px;padding:28px 22px 24px;background:linear-gradient(145deg,#284e41,#477463);color:#fff;border-radius:0 0 22px 22px}.hero h1{font:600 28px Kanit;margin:0}.hero p{margin:6px 0 0;font-size:13px;opacity:.9}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px}.wide{grid-column:1/-1}.section-title{font:600 18px Kanit;color:var(--brand);margin:0 0 4px}.sub{font-size:13px;color:var(--muted);line-height:1.5;margin:0 0 14px}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.btn{border:0;border-radius:11px;padding:10px 13px;font:600 13px Sarabun;cursor:pointer}.primary{background:var(--brand);color:#fff}.secondary{background:var(--brand2);color:var(--brand)}.bad{background:var(--badbg);color:var(--bad)}.small{font-size:11px;color:var(--muted)}.count{font:600 24px Kanit;color:var(--brand)}.request{border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:10px}.head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.name{font-weight:600;font-size:15px}.pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:600}.pending{background:var(--warnbg);color:var(--warn)}.approved{background:var(--goodbg);color:var(--good)}.rejected{background:var(--badbg);color:var(--bad)}.details{font-size:12px;line-height:1.7;color:var(--muted);margin-top:8px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:10px 8px;border-bottom:1px solid var(--border);vertical-align:top;text-align:left}th{color:var(--muted);font-weight:600}.user-actions{display:flex;gap:6px;flex-wrap:wrap}.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:flex-end;justify-content:center}.modal-backdrop.show{display:flex}.modal{width:min(620px,100%);background:#fff;border-radius:20px 20px 0 0;padding:20px}.modal h2{font:600 18px Kanit;margin:0 0 6px;color:var(--brand)}textarea{width:100%;min-height:100px;border:1px solid var(--border);border-radius:12px;padding:10px;font:14px Sarabun;resize:vertical}.hidden{display:none}.alert{padding:11px 12px;border-radius:12px;background:var(--warnbg);color:var(--warn);font-size:12px;margin-bottom:10px}@media(max-width:700px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}table{display:block;overflow:auto;white-space:nowrap}}
+</style>
+</head>
+<body>
+<div class="app">
+<section class="hero"><h1>🛠️ Admin — Diabetes Buddy</h1><p>จัดการผู้ใช้งานและตรวจสอบคำขอสิทธิ์ทีมดูแล</p></section>
+<div id="authAlert" class="alert">กำลังตรวจสอบสิทธิ์...</div>
+<div class="grid">
+  <div class="card"><div class="section-title">คำขอรอพิจารณา</div><div class="count" id="pendingCount">—</div><div class="small">คำขอ DOCTOR / NURSE ที่ยังไม่ตรวจสอบ</div></div>
+  <div class="card"><div class="section-title">ผู้ใช้งานทีมดูแล</div><div class="count" id="staffCount">—</div><div class="small">ผู้ใช้ที่มี Role = DOCTOR / NURSE</div></div>
+  <div class="card wide">
+    <div class="toolbar"><div><div class="section-title">➕ เพิ่มบุคลากรโดย Admin</div><div class="sub">ใช้เมื่อ Admin ต้องการเพิ่ม DOCTOR / NURSE โดยตรง โดยไม่ผ่านคำขอ</div></div></div>
+    <div class="grid" style="margin-top:10px;grid-template-columns:1fr 1fr">
+      <div><label class="small">LINE User ID</label><input id="newUserId" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;margin-top:4px" placeholder="Uxxxxxxxx"></div>
+      <div><label class="small">ชื่อ</label><input id="newUserName" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;margin-top:4px" placeholder="ชื่อ-นามสกุล"></div>
+      <div><label class="small">บทบาท</label><select id="newUserRole" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;margin-top:4px"><option value="DOCTOR">DOCTOR — แพทย์</option><option value="NURSE">NURSE — พยาบาล</option></select></div>
+      <div><label class="small">เหตุผลการเพิ่ม</label><input id="newUserReason" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;margin-top:4px" placeholder="เหตุผลอย่างน้อย 3 ตัวอักษร"></div>
+    </div>
+    <div id="createUserMsg" class="small" style="margin-top:8px"></div>
+    <button class="btn primary" style="margin-top:10px" onclick="createStaffUser()">เพิ่มผู้ใช้งาน</button>
+  </div>
+  <div class="card wide">
+    <div class="toolbar"><div><div class="section-title">📥 คำขอสิทธิ์ทีมดูแล</div><div class="sub">ตรวจข้อมูลก่อนอนุมัติหรือไม่อนุมัติ</div></div><button class="btn secondary" onclick="loadAll()">↻ รีเฟรช</button></div>
+    <div id="requests"></div>
+  </div>
+  <div class="card wide">
+    <div class="toolbar"><div><div class="section-title">👥 ผู้ใช้งานทีมดูแล</div><div class="sub">จัดการสถานะบัญชี DOCTOR / NURSE</div></div></div>
+    <div style="overflow:auto"><table><thead><tr><th>ชื่อ</th><th>LINE User ID</th><th>Role</th><th>สถานะ</th><th>อัปเดตล่าสุด</th><th>การทำงาน</th></tr></thead><tbody id="usersBody"></tbody></table></div>
+  </div>
+</div>
+</div>
+
+<div class="modal-backdrop" id="decisionModal"><div class="modal"><h2 id="decisionTitle">ตรวจสอบคำขอ</h2><div id="decisionSummary" class="small" style="margin-bottom:10px"></div><textarea id="decisionReason" placeholder="ระบุเหตุผลการตัดสินใจ (อย่างน้อย 3 ตัวอักษร)"></textarea><div class="actions" style="margin-top:10px"><button class="btn secondary" onclick="closeModal()">ยกเลิก</button><button class="btn primary" id="decisionBtn" onclick="submitDecision()">ยืนยัน</button></div><div id="decisionError" class="small" style="color:#aa4e40;margin-top:8px"></div></div></div>
+<div class="modal-backdrop" id="statusModal"><div class="modal"><h2>เปลี่ยนสถานะผู้ใช้งาน</h2><div id="statusSummary" class="small" style="margin-bottom:10px"></div><textarea id="statusReason" placeholder="ระบุเหตุผล (อย่างน้อย 3 ตัวอักษร)"></textarea><div class="actions" style="margin-top:10px"><button class="btn secondary" onclick="closeStatusModal()">ยกเลิก</button><button class="btn primary" id="statusBtn" onclick="submitStatus()">ยืนยัน</button></div><div id="statusError" class="small" style="color:#aa4e40;margin-top:8px"></div></div></div>
+
+<script>
+const LIFF_ID='PUT_ADMIN_LIFF_ID_HERE';
+const GAS_WEB_APP_URL='https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpclxW8jOqIqbLbUrSiftt4hzyxr5dtvhKjIAyL-vx74AgO_UP-zEk4/exec';
+let idToken=null;let decisionTarget=null;let statusTarget=null;
+async function api(body){const r=await fetch(GAS_WEB_APP_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)});const text=await r.text();let d;try{d=JSON.parse(text)}catch(e){throw new Error('Backend ตอบกลับไม่ใช่ JSON (HTTP '+r.status+')')}if(!r.ok)throw new Error(d.error||('HTTP '+r.status));return d}
+function esc(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function fmt(v){if(!v)return '—';const d=new Date(v);return isNaN(d)?String(v):d.toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'})}
+function pill(s){const c=s==='PENDING'?'pending':s==='APPROVED'?'approved':s==='REJECTED'?'rejected':'';return `<span class="pill ${c}">${esc(s)}</span>`}
+async function loadRequests(){const d=await api({type:'adminGetStaffAccessRequests',idToken,status:'PENDING'});const list=d.requests||[];document.getElementById('pendingCount').textContent=list.length;const box=document.getElementById('requests');if(!list.length){box.innerHTML='<div class="small">ยังไม่มีคำขอที่รอพิจารณา</div>';return}box.innerHTML=list.map(q=>`<div class="request"><div class="head"><div><div class="name">${esc(q.fullName)}</div><div class="small">${q.requestedRole==='DOCTOR'?'👨‍⚕️ แพทย์':'👩‍⚕️ พยาบาล'} · ${esc(q.requestId)}</div></div>${pill(q.status)}</div><div class="details">LINE User ID: ${esc(q.userId)}<br>หน่วยงาน: ${esc(q.organization)}<br>ติดต่อ: ${esc(q.contact)}<br>เหตุผล: ${esc(q.reason)}<br>ส่งเมื่อ: ${fmt(q.submittedAt)}</div><div class="actions"><button class="btn primary" onclick="openDecision('${esc(q.requestId)}','APPROVED','${esc(q.fullName)}','${esc(q.requestedRole)}')">อนุมัติ</button><button class="btn bad" onclick="openDecision('${esc(q.requestId)}','REJECTED','${esc(q.fullName)}','${esc(q.requestedRole)}')">ไม่อนุมัติ</button></div></div>`).join('')}
+async function loadUsers(){const d=await api({type:'adminListUsers',idToken});const users=(d.users||[]).filter(u=>u.role==='DOCTOR'||u.role==='NURSE');document.getElementById('staffCount').textContent=users.length;document.getElementById('usersBody').innerHTML=users.map(u=>`<tr><td>${esc(u.name)}</td><td>${esc(u.userId)}</td><td>${u.role==='DOCTOR'?'👨‍⚕️ DOCTOR':'👩‍⚕️ NURSE'}</td><td>${esc(u.status)}</td><td>${fmt(u.updatedAt)}</td><td><div class="user-actions">${u.status==='ACTIVE'?`<button class="btn bad" onclick="openStatus('${esc(u.userId)}','${esc(u.name)}','DISABLED')">ปิดใช้งาน</button>`:`<button class="btn primary" onclick="openStatus('${esc(u.userId)}','${esc(u.name)}','ACTIVE')">เปิดใช้งาน</button>`}</div></td></tr>`).join('')||'<tr><td colspan="6">ยังไม่มีผู้ใช้งานทีมดูแล</td></tr>'}
+async function loadAll(){try{await Promise.all([loadRequests(),loadUsers()]);document.getElementById('authAlert').classList.add('hidden')}catch(e){document.getElementById('authAlert').textContent=e.message;document.getElementById('authAlert').classList.remove('hidden')}}
+function openDecision(id,decision,name,role){decisionTarget={id,decision};document.getElementById('decisionTitle').textContent=decision==='APPROVED'?'✅ อนุมัติคำขอ':'❌ ไม่อนุมัติคำขอ';document.getElementById('decisionSummary').innerHTML=`${esc(name)} · ${role==='DOCTOR'?'แพทย์':'พยาบาล'}<br>Request ID: <b>${esc(id)}</b>`;document.getElementById('decisionReason').value='';document.getElementById('decisionError').textContent='';document.getElementById('decisionModal').classList.add('show')}
+function closeModal(){document.getElementById('decisionModal').classList.remove('show');decisionTarget=null}
+async function submitDecision(){if(!decisionTarget)return;const reason=document.getElementById('decisionReason').value.trim();if(reason.length<3){document.getElementById('decisionError').textContent='กรุณาระบุเหตุผลอย่างน้อย 3 ตัวอักษร';return}const btn=document.getElementById('decisionBtn');btn.disabled=true;btn.textContent='กำลังบันทึก…';try{await api({type:'adminReviewStaffAccessRequest',idToken,requestId:decisionTarget.id,decision:decisionTarget.decision,reason});closeModal();await loadAll()}catch(e){document.getElementById('decisionError').textContent=e.message}finally{btn.disabled=false;btn.textContent='ยืนยัน'}}
+function openStatus(id,name,status){statusTarget={id,status};document.getElementById('statusSummary').innerHTML=`${esc(name)}<br>สถานะใหม่: <b>${status}</b>`;document.getElementById('statusReason').value='';document.getElementById('statusError').textContent='';document.getElementById('statusModal').classList.add('show')}
+function closeStatusModal(){document.getElementById('statusModal').classList.remove('show');statusTarget=null}
+async function submitStatus(){if(!statusTarget)return;const reason=document.getElementById('statusReason').value.trim();if(reason.length<3){document.getElementById('statusError').textContent='กรุณาระบุเหตุผลอย่างน้อย 3 ตัวอักษร';return}const btn=document.getElementById('statusBtn');btn.disabled=true;btn.textContent='กำลังบันทึก…';try{await api({type:'adminUpdateUserStatus',idToken,targetUserId:statusTarget.id,status:statusTarget.status,reason});closeStatusModal();await loadUsers()}catch(e){document.getElementById('statusError').textContent=e.message}finally{btn.disabled=false;btn.textContent='ยืนยัน'}}
+
+async function createStaffUser(){const userId=document.getElementById('newUserId').value.trim();const name=document.getElementById('newUserName').value.trim();const role=document.getElementById('newUserRole').value;const reason=document.getElementById('newUserReason').value.trim();const msg=document.getElementById('createUserMsg');msg.textContent='';if(!userId||!name||reason.length<3){msg.textContent='กรุณากรอก LINE User ID, ชื่อ และเหตุผลให้ครบ';return}try{const d=await api({type:'adminCreateStaffUser',idToken,userId,name,role,reason});if(!d.ok)throw new Error(d.error||'เพิ่มผู้ใช้งานไม่สำเร็จ');msg.textContent='✅ เพิ่มผู้ใช้งานเรียบร้อย';document.getElementById('newUserId').value='';document.getElementById('newUserName').value='';document.getElementById('newUserReason').value='';await loadUsers()}catch(e){msg.textContent='❌ '+e.message}}
+
+async function init(){try{if(!LIFF_ID||LIFF_ID==='PUT_ADMIN_LIFF_ID_HERE'){throw new Error('กรุณาสร้าง Admin LIFF แล้วนำ LIFF ID มาใส่ในไฟล์นี้ก่อนใช้งาน')}await liff.init({liffId:LIFF_ID});if(!liff.isLoggedIn()){liff.login();return}idToken=liff.getIDToken();await loadAll()}catch(e){document.getElementById('authAlert').textContent='ไม่สามารถเปิดหน้า Admin: '+e.message;document.getElementById('authAlert').classList.remove('hidden')}}
+init();
+</script>
+</body></html>

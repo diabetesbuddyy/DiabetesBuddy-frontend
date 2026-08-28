@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ขอสิทธิ์ทีมดูแล — Diabetes Buddy</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600&family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f5ee;--surface:#fff;--ink:#263029;--muted:#6b7268;--brand:#3d6b5c;--brand2:#e4eee8;--border:#dfe5dd;--warn:#8a5a12;--warnbg:#fcf3e2;--good:#5c8c5a;--bad:#b85646}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Sarabun,sans-serif}.wrap{max-width:560px;margin:auto;padding:0 16px 36px}.hero{margin:0 -16px 18px;padding:28px 20px 24px;background:linear-gradient(145deg,#315b4d,#477463);color:#fff;border-radius:0 0 22px 22px}.hero h1{font:600 26px Kanit;margin:0}.hero p{margin:6px 0 0;font-size:13px;opacity:.9}.card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:14px}.title{font:600 18px Kanit;margin:0 0 4px;color:var(--brand)}.sub{font-size:13px;color:var(--muted);line-height:1.6;margin:0 0 14px}.label{font-size:13px;font-weight:600;margin:0 0 7px;display:block}input,select,textarea{width:100%;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--ink);font:14px Sarabun;padding:12px}textarea{min-height:110px;resize:vertical}.field{margin-bottom:13px}.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.role{border:2px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;background:var(--surface)}.role.active{border-color:var(--brand);background:var(--brand2)}.role input{width:auto;margin-right:8px}.btn{width:100%;border:0;border-radius:12px;padding:13px;font:600 14px Sarabun;cursor:pointer}.primary{background:var(--brand);color:#fff}.secondary{background:var(--brand2);color:var(--brand)}.btn:disabled{opacity:.55;cursor:not-allowed}.status{padding:13px;border-radius:12px;font-size:13px;line-height:1.6}.pending{background:var(--warnbg);color:var(--warn)}.approved{background:#eaf4ea;color:var(--good)}.rejected{background:#fbeae7;color:var(--bad)}.neutral{background:#eef2ed;color:var(--muted)}.small{font-size:11px;color:var(--muted);line-height:1.5}.row{display:flex;justify-content:space-between;gap:12px}.hidden{display:none}.error{color:var(--bad);font-size:12px;margin-top:8px}.success{color:var(--good);font-size:12px;margin-top:8px}@media(max-width:420px){.role-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero"><h1>🔐 ขอสิทธิ์สำหรับทีมดูแล</h1><p>ส่งคำขอให้ Admin ตรวจสอบก่อนเปิดสิทธิ์แพทย์หรือพยาบาล</p></section>
+
+  <div class="card">
+    <h2 class="title">ข้อมูลผู้ขอ</h2>
+    <p class="sub">LINE User ID จะถูกยืนยันจาก LINE โดยระบบ ไม่ต้องกรอกเอง</p>
+    <div class="field"><label class="label" for="fullName">ชื่อ-นามสกุล *</label><input id="fullName" type="text" maxlength="120"></div>
+    <div class="field"><label class="label">ประเภทสิทธิ์ที่ต้องการ *</label><div class="role-grid">
+      <label class="role" id="roleDoctor"><input type="radio" name="requestedRole" value="DOCTOR"> 👨‍⚕️ แพทย์</label>
+      <label class="role" id="roleNurse"><input type="radio" name="requestedRole" value="NURSE"> 👩‍⚕️ พยาบาล</label>
+    </div></div>
+    <div class="field"><label class="label" for="organization">หน่วยงาน / สถานที่ปฏิบัติงาน *</label><input id="organization" type="text" maxlength="160" placeholder="เช่น โรงพยาบาล / คณะ / หน่วยงาน"></div>
+    <div class="field"><label class="label" for="contact">ข้อมูลติดต่อ *</label><input id="contact" type="text" maxlength="160" placeholder="เช่น เบอร์โทรศัพท์หรืออีเมล"></div>
+    <div class="field"><label class="label" for="reason">เหตุผลที่ขอสิทธิ์ *</label><textarea id="reason" maxlength="500" placeholder="อธิบายสั้น ๆ ว่าต้องการใช้ระบบเพื่ออะไร"></textarea></div>
+    <div id="formError" class="error hidden"></div>
+    <button id="submitBtn" class="btn primary" onclick="submitRequest()" disabled>ส่งคำขอสิทธิ์</button>
+  </div>
+
+  <div class="card">
+    <h2 class="title">สถานะคำขอของฉัน</h2>
+    <div id="requestStatus" class="status neutral">กำลังตรวจสอบ...</div>
+    <div class="small" id="requestMeta" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<script>
+const LIFF_ID='2011121393-V8xdJQ6r';
+const GAS_WEB_APP_URL='https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpclxW8jOqIqbLbUrSiftt4hzyxr5dtvhKjIAyL-vx74AgO_UP-zEk4/exec';
+let idToken=null;
+let profile=null;
+
+async function api(body){
+  const r=await fetch(GAS_WEB_APP_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)});
+  const text=await r.text();
+  let data;
+  try{data=JSON.parse(text)}catch(e){throw new Error('Backend ตอบกลับไม่ใช่ JSON (HTTP '+r.status+')')}
+  if(!r.ok)throw new Error(data.error||('HTTP '+r.status));
+  return data;
+}
+
+function setStatus(text,cls='neutral'){const el=document.getElementById('requestStatus');el.className='status '+cls;el.textContent=text}
+function formatDate(v){if(!v)return '—';const d=new Date(v);return isNaN(d)?String(v):d.toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'})}
+function syncRoleUI(){document.querySelectorAll('input[name="requestedRole"]').forEach(i=>{const box=i.closest('.role');box.classList.toggle('active',i.checked)});}
+document.querySelectorAll('input[name="requestedRole"]').forEach(i=>i.addEventListener('change',syncRoleUI));
+
+async function loadMyRequest(){
+  try{
+    const d=await api({type:'getMyStaffAccessRequest',idToken});
+    const q=d.request;
+    if(!q){setStatus('ยังไม่มีคำขอ','neutral');document.getElementById('requestMeta').textContent='กรอกข้อมูลด้านบนเพื่อส่งคำขอ';return}
+    const cls=q.status==='PENDING'?'pending':q.status==='APPROVED'?'approved':q.status==='REJECTED'?'rejected':'neutral';
+    const label={PENDING:'⏳ รอ Admin ตรวจสอบ',APPROVED:'✅ อนุมัติแล้ว',REJECTED:'❌ ไม่อนุมัติ'}[q.status]||q.status;
+    setStatus(label,cls);
+    document.getElementById('requestMeta').innerHTML=`เลขคำขอ: <b>${q.requestId}</b><br>สิทธิ์ที่ขอ: <b>${q.requestedRole==='DOCTOR'?'แพทย์':'พยาบาล'}</b><br>ส่งเมื่อ: ${formatDate(q.submittedAt)}${q.reviewedAt?'<br>ตรวจสอบเมื่อ: '+formatDate(q.reviewedAt):''}${q.decisionReason?'<br>เหตุผล: '+escapeHtml(q.decisionReason):''}`;
+    document.getElementById('submitBtn').disabled=q.status==='PENDING';
+  }catch(e){setStatus('โหลดสถานะไม่สำเร็จ: '+e.message,'rejected')}
+}
+function escapeHtml(s){return String(s||'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+
+async function submitRequest(){
+  const err=document.getElementById('formError');err.classList.add('hidden');
+  const role=document.querySelector('input[name="requestedRole"]:checked')?.value||'';
+  const fullName=document.getElementById('fullName').value.trim();
+  const organization=document.getElementById('organization').value.trim();
+  const contact=document.getElementById('contact').value.trim();
+  const reason=document.getElementById('reason').value.trim();
+  if(!fullName||!role||!organization||!contact||!reason){err.textContent='กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบ';err.classList.remove('hidden');return}
+  const btn=document.getElementById('submitBtn');btn.disabled=true;btn.textContent='กำลังส่งคำขอ…';
+  try{
+    const d=await api({type:'submitStaffAccessRequest',idToken,fullName,requestedRole:role,organization,contact,reason});
+    if(!d.ok)throw new Error(d.error||'ส่งคำขอไม่สำเร็จ');
+    setStatus('✅ ส่งคำขอแล้ว — รอ Admin ตรวจสอบ','pending');
+    document.getElementById('requestMeta').innerHTML=`เลขคำขอ: <b>${d.requestId}</b><br>สถานะ: PENDING`;
+    document.getElementById('submitBtn').textContent='ส่งคำขอเรียบร้อย';
+    await loadMyRequest();
+  }catch(e){err.textContent=e.message||'เกิดข้อผิดพลาด';err.classList.remove('hidden');btn.disabled=false;btn.textContent='ส่งคำขอสิทธิ์'}
+}
+
+async function init(){
+  try{
+    await liff.init({liffId:LIFF_ID});
+    if(!liff.isLoggedIn()){liff.login();return}
+    profile=await liff.getProfile();
+    idToken=liff.getIDToken();
+    document.getElementById('fullName').value=profile.displayName||'';
+    document.getElementById('submitBtn').disabled=false;
+    await loadMyRequest();
+  }catch(e){setStatus('เชื่อมต่อระบบไม่สำเร็จ: '+e.message,'rejected')}
+}
+init();
+</script>
+</body></html>
