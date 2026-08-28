@@ -44,7 +44,7 @@
 <div class="modal-backdrop" id="patientModal"><div class="modal"><div class="toolbar" style="justify-content:space-between"><h2>รายละเอียดผู้ป่วย</h2><button class="btn secondary" onclick="closePatientModal()">ปิด</button></div><div id="patientModalBody"></div></div></div>
 
 <script>
-const LIFF_ID='PUT_BACKOFFICE_LIFF_ID_HERE';
+const LIFF_ID='2011121393-snPTo1BO';
 const GAS_WEB_APP_URL='https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpclxW8jOqIqbLbUrSiftt4hzyxr5dtvhKjIAyL-vx74AgO_UP-zEk4/exec';
 let myIdToken=null, profile={userId:'',displayName:''}, currentRole='', careData=null, currentRequestId='', pendingStatusTarget=null;
 async function api(body){const res=await fetch(GAS_WEB_APP_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)});const text=await res.text();let d;try{d=JSON.parse(text)}catch(e){throw new Error('Backend ตอบกลับไม่ใช่ JSON')}if(!res.ok||d.ok===false&&d.error)throw new Error(d.error||`HTTP ${res.status}`);return d}
