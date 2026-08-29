@@ -603,7 +603,35 @@ function renderPatients(){const q=(document.getElementById('patientSearch').valu
   ` : ''}
 </div></article>`).join(''):'<div class="empty">ไม่พบผู้ป่วยที่ตรงเงื่อนไข</div>'}
 async function loadCareView(){try{const d=await api({type:'nurseData',idToken:myIdToken});if(!d.authorized)throw new Error(d.error||'ไม่มีสิทธิ์');careData=d;renderCareData();setAlert('รีเฟรชข้อมูลแล้ว','good')}catch(e){setAlert(e.message||'โหลดข้อมูลไม่สำเร็จ','bad')}}
-function renderAlerts(){const arr=Object.values(careData?.patients||{});const patients=careData?.patients||[];const alerts=[];patients.forEach(p=>{if(p.alertsToday)alerts.push(p)});document.getElementById('alertList').innerHTML=alerts.length?alerts.map(p=>`<div class="request-card"><div class="request-head"><div><div class="request-name">${esc(p.name)}</div><div class="muted">${p.alertsToday} Alert ที่เปิดอยู่วันนี้</div></div><span class="pill bad">OPEN</span></div><button class="btn primary" style="margin-top:10px" onclick="openPatientDetail(this.dataset.id)" data-id="${esc(p.userId)}">ดูผู้ป่วย</button></div>`).join(''):'<div class="empty">ไม่มี Alert ที่เปิดอยู่จากภาพรวมวันนี้</div>'}
+function renderAlerts(){const arr=Object.values(careData?.patients||{});const patients=careData?.patients||[];const alerts=[];patients.forEach(p=>{if(p.alertsToday)alerts.push(p)});document.getElementById('alertList').innerHTML=alerts.length?alerts.map(p=>`<div class="request-card"><div class="request-head"><div><div class="request-name">${esc(p.name)}</div><div class="muted">${p.alertsToday} Alert ที่เปิดอยู่วันนี้</div></div><span class="pill bad">OPEN</span></div><div
+  class="toolbar"
+  style="margin-top:10px">
+
+  <button
+    class="btn primary"
+    type="button"
+    onclick="openPatientDetail(this.dataset.id)"
+    data-id="${esc(p.userId)}">
+    ดูผู้ป่วย
+  </button>
+
+  ${currentRole === 'NURSE' ? `
+
+  <button
+    class="btn info"
+    type="button"
+    onclick="openNurseMessage(
+      this.dataset.id,
+      this.dataset.name
+    )"
+    data-id="${esc(p.userId)}"
+    data-name="${esc(p.name || '')}">
+    💬 ส่งข้อความ
+  </button>
+
+  ` : ''}
+
+</div>`).join(''):'<div class="empty">ไม่มี Alert ที่เปิดอยู่จากภาพรวมวันนี้</div>'}
 
 async function openPatientDetail(id){try{const d=await api({type:'carePatientDetail',idToken:myIdToken,patientId:id,days:14});const p=d.patient,c=d.clinical,h=d.history;document.getElementById('patientModalBody').innerHTML=`<div class="kv"><b>ผู้ป่วย</b><span>${esc(p.name||'—')}</span></div><div class="kv"><b>LINE User ID</b><span><code>${esc(p.patientId)}</code></span></div><div class="kv"><b>น้ำหนัก</b><span>${p.weightKg||'—'} kg</span></div><div class="kv"><b>แหล่งน้ำหนัก</b><span>${esc(p.weightSource||'—')}</span></div><div class="kv"><b>แพทย์</b><span>${esc(p.assignment?.doctorId||c.doctorId||'—')}</span></div><div class="kv"><b>พยาบาล</b><span>${esc(p.assignment?.nurseId||'—')}</span></div><div class="section-block"><h3>🩸 น้ำตาลล่าสุด</h3>${h.glucose?.length?h.glucose.slice(-8).reverse().map(x=>`<div class="activity-row"><span>${fmt(x.time)} · ${esc(x.timing)}</span><b>${x.value} mg/dL</b></div>`).join(''):'<div class="empty">ไม่มีข้อมูล</div>'}</div><div class="section-block"><h3>🍚 คาร์บรายวัน</h3>${h.carbDaily?.length?h.carbDaily.slice(-8).reverse().map(x=>`<div class="activity-row"><span>${x.date}</span><b>${x.totalCarbs} กรัม</b></div>`).join(''):'<div class="empty">ไม่มีข้อมูล</div>'}</div><div class="section-block"><h3>💉 อินซูลินล่าสุด</h3>${h.insulin?.length?h.insulin.slice(-8).reverse().map(x=>`<div class="activity-row"><span>${fmt(x.time)} · ${esc(x.method||'')}</span><b>${x.totalDose||0} หน่วย</b></div>`).join(''):'<div class="empty">ไม่มีข้อมูล</div>'}</div>`;document.getElementById('patientModal').classList.add('show')}catch(e){setAlert(e.message||'โหลดรายละเอียดผู้ป่วยไม่สำเร็จ','bad')}}
 function closePatientModal(){document.getElementById('patientModal').classList.remove('show')}
