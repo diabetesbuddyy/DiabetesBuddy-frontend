@@ -25,35 +25,7 @@
   </div>
 
   <div id="careView" class="hidden">
-    <div class="tabs"><button class="tab active" onclick="switchCareTab('patients')">👥 ผู้ป่วย</button><button class="tab" onclick="switchCareTab('alerts')">⚠️ Alert</button></div><div id="nurseTools" class="card hidden" style="margin-bottom:14px">
-  <h2 class="section-title">👩‍⚕️ งานพยาบาล</h2>
-  <p class="sub">
-    เครื่องมือสำหรับติดตามผู้ป่วย แจ้งเตือน และยืนยันข้อมูล
-  </p>
-
-  <div class="toolbar">
-    <button
-      class="btn primary"
-      type="button"
-      onclick="scrollToPatientSearch()">
-      🔎 ค้นหาผู้ป่วย
-    </button>
-
-    <button
-      class="btn secondary"
-      type="button"
-      onclick="switchCareTab('alerts')">
-      ⚠️ ดู Alert
-    </button>
-
-    <button
-      class="btn secondary"
-      type="button"
-      onclick="refreshNurseView()">
-      🔄 รีเฟรชข้อมูล
-    </button>
-  </div>
-</div>
+    <div class="tabs"><button class="tab active" onclick="switchCareTab('patients')">👥 ผู้ป่วย</button><button class="tab" onclick="switchCareTab('alerts')">⚠️ Alert</button></div>
     <section id="carePatientsTab"><div class="grid"><section class="card"><div class="toolbar" style="justify-content:space-between"><div><h2 class="section-title" id="careViewTitle">พื้นที่ทีมดูแล</h2><p class="sub">ผู้ป่วยที่อยู่ในความรับผิดชอบ</p></div><button class="btn secondary" onclick="loadCareView()">รีเฟรช</button></div><div class="meta-grid" id="careSummary"></div></section><section class="card"><div class="search-row"><input id="patientSearch" placeholder="ค้นหาผู้ป่วยตามชื่อ" oninput="renderPatients()"><select id="patientFilter" onchange="renderPatients()"><option value="all">ผู้ป่วยทั้งหมด</option><option value="hypo">น้ำตาลต่ำ</option><option value="over">คาร์บเกินเป้า</option><option value="logged">มีการบันทึกวันนี้</option><option value="none">ยังไม่บันทึก</option></select></div><div id="patientList" class="patient-list" style="margin-top:12px"></div></section></div></section>
     <section id="careAlertsTab" class="hidden"><div class="card"><div class="toolbar" style="justify-content:space-between"><div><h2 class="section-title">⚠️ Alert ของผู้ป่วย</h2><p class="sub">แสดง Alert ที่เปิดอยู่ของผู้ป่วยที่คุณมีสิทธิ์ดูแล</p></div><button class="btn secondary" onclick="loadCareView()">รีเฟรช</button></div><div id="alertList" class="request-list"></div></div></section>
   </div>
