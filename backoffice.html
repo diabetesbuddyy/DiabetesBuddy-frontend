@@ -25,7 +25,35 @@
   </div>
 
   <div id="careView" class="hidden">
-    <div class="tabs"><button class="tab active" onclick="switchCareTab('patients')">👥 ผู้ป่วย</button><button class="tab" onclick="switchCareTab('alerts')">⚠️ Alert</button></div>
+    <div class="tabs"><button class="tab active" onclick="switchCareTab('patients')">👥 ผู้ป่วย</button><button class="tab" onclick="switchCareTab('alerts')">⚠️ Alert</button></div><div id="nurseTools" class="card hidden" style="margin-bottom:14px">
+  <h2 class="section-title">👩‍⚕️ งานพยาบาล</h2>
+  <p class="sub">
+    เครื่องมือสำหรับติดตามผู้ป่วย แจ้งเตือน และยืนยันข้อมูล
+  </p>
+
+  <div class="toolbar">
+    <button
+      class="btn primary"
+      type="button"
+      onclick="scrollToPatientSearch()">
+      🔎 ค้นหาผู้ป่วย
+    </button>
+
+    <button
+      class="btn secondary"
+      type="button"
+      onclick="switchCareTab('alerts')">
+      ⚠️ ดู Alert
+    </button>
+
+    <button
+      class="btn secondary"
+      type="button"
+      onclick="refreshNurseView()">
+      🔄 รีเฟรชข้อมูล
+    </button>
+  </div>
+</div>
     <section id="carePatientsTab"><div class="grid"><section class="card"><div class="toolbar" style="justify-content:space-between"><div><h2 class="section-title" id="careViewTitle">พื้นที่ทีมดูแล</h2><p class="sub">ผู้ป่วยที่อยู่ในความรับผิดชอบ</p></div><button class="btn secondary" onclick="loadCareView()">รีเฟรช</button></div><div class="meta-grid" id="careSummary"></div></section><section class="card"><div class="search-row"><input id="patientSearch" placeholder="ค้นหาผู้ป่วยตามชื่อ" oninput="renderPatients()"><select id="patientFilter" onchange="renderPatients()"><option value="all">ผู้ป่วยทั้งหมด</option><option value="hypo">น้ำตาลต่ำ</option><option value="over">คาร์บเกินเป้า</option><option value="logged">มีการบันทึกวันนี้</option><option value="none">ยังไม่บันทึก</option></select></div><div id="patientList" class="patient-list" style="margin-top:12px"></div></section></div></section>
     <section id="careAlertsTab" class="hidden"><div class="card"><div class="toolbar" style="justify-content:space-between"><div><h2 class="section-title">⚠️ Alert ของผู้ป่วย</h2><p class="sub">แสดง Alert ที่เปิดอยู่ของผู้ป่วยที่คุณมีสิทธิ์ดูแล</p></div><button class="btn secondary" onclick="loadCareView()">รีเฟรช</button></div><div id="alertList" class="request-list"></div></div></section>
   </div>
@@ -43,6 +71,35 @@
 <div class="modal-backdrop" id="statusModal"><div class="modal"><h2>เปลี่ยนสถานะผู้ใช้งาน</h2><p id="statusSummary" class="sub"></p><div class="field"><label class="label">เหตุผล *</label><textarea id="statusReason" maxlength="500"></textarea></div><div class="toolbar"><button class="btn secondary" onclick="closeStatusModal()">ปิด</button><button class="btn primary" id="statusConfirmBtn" onclick="submitUserStatusChange()">ยืนยัน</button></div></div></div>
 <div class="modal-backdrop" id="roleModal"><div class="modal"><h2>เปลี่ยน Role ผู้ใช้งาน</h2><p id="roleSummary" class="sub"></p><div class="field"><label class="label">Role ใหม่ *</label><select id="newUserRole"><option value="DOCTOR">DOCTOR — แพทย์</option><option value="NURSE">NURSE — พยาบาล</option></select></div><div class="field"><label class="label">เหตุผล *</label><textarea id="roleReason" maxlength="500" placeholder="ระบุเหตุผลในการเปลี่ยน Role"></textarea></div><div class="alert info">การเปลี่ยน Role จะไม่เปลี่ยน Patient Assignment ให้อัตโนมัติ หากยังมีการมอบหมายที่ ACTIVE อยู่ ระบบจะปฏิเสธการเปลี่ยนจนกว่า Admin จะจัดการการมอบหมายก่อน</div><div class="toolbar"><button class="btn secondary" onclick="closeRoleModal()">ยกเลิก</button><button class="btn primary" id="roleConfirmBtn" onclick="submitRoleChange()">ยืนยันการเปลี่ยน Role</button></div></div></div>
 <div class="modal-backdrop" id="patientModal"><div class="modal"><div class="toolbar" style="justify-content:space-between"><h2>รายละเอียดผู้ป่วย</h2><button class="btn secondary" onclick="closePatientModal()">ปิด</button></div><div id="patientModalBody"></div></div></div>
+<div class="modal-backdrop" id="nurseActionModal">
+  <div class="modal">
+
+    <div
+      class="toolbar"
+      style="justify-content:space-between">
+
+      <h2 id="nurseActionTitle">
+        👩‍⚕️ การดูแลผู้ป่วย
+      </h2>
+
+      <button
+        class="btn secondary"
+        type="button"
+        onclick="closeNurseActionModal()">
+        ปิด
+      </button>
+
+    </div>
+
+    <p
+      id="nurseActionCaption"
+      class="sub">
+    </p>
+
+    <div id="nurseActionBody"></div>
+
+  </div>
+</div>
 <div class="modal-backdrop" id="clinicalModal"><div class="modal"><div class="toolbar" style="justify-content:space-between"><div><h2>🩺 แผนการรักษา</h2><p id="clinicalPatientCaption" class="sub"></p></div><button class="btn secondary" onclick="closeClinicalModal()">ปิด</button></div><div class="field"><label class="label">Regimen</label><input id="cpRegimen"></div><div class="section-block"><h3>💉 Basal</h3><div class="subgrid"><div class="field"><label class="label">เปิดใช้งาน</label><select id="cpBasalEnabled"><option value="false">ปิด</option><option value="true">เปิด</option></select></div><div class="field"><label class="label">วิธี</label><input id="cpBasalMethod"></div><div class="field"><label class="label">Coefficient (unit/kg/day)</label><input id="cpBasalCoefficient" type="number" step="0.01" min="0"></div><div class="field"><label class="label">Basal ที่แพทย์กำหนด (หน่วย/วัน)</label><input id="cpBasalPrescribed" type="number" step="0.5" min="0"></div><div class="field"><label class="label">ต้องใช้น้ำหนัก</label><select id="cpWeightRequired"><option value="true">ใช่</option><option value="false">ไม่ใช่</option></select></div></div></div><div class="section-block"><h3>🍚 Bolus / ICR</h3><div class="subgrid"><div class="field"><label class="label">วิธี Bolus ที่เลือก</label><select id="cpBolusSelected"><option value="icr">ICR</option><option value="doctor_defined_1">สูตรแพทย์ 1</option><option value="doctor_defined_2">สูตรแพทย์ 2</option></select></div><div></div><div class="field"><label class="label">ICR เช้า</label><input id="cpIcrB" type="number" step="0.1" min="0"></div><div class="field"><label class="label">ICR เที่ยง</label><input id="cpIcrL" type="number" step="0.1" min="0"></div><div class="field"><label class="label">ICR เย็น</label><input id="cpIcrD" type="number" step="0.1" min="0"></div><div class="field"><label class="label">ICR ของว่าง</label><input id="cpIcrS" type="number" step="0.1" min="0"></div></div></div><div class="section-block"><h3>🎯 Correction</h3><div class="subgrid"><div class="field"><label class="label">เปิดใช้งาน</label><select id="cpCorrectionEnabled"><option value="false">ปิด</option><option value="true">เปิด</option></select></div><div></div><div class="field"><label class="label">Target</label><input id="cpCorrectionTarget" type="number" step="1" min="0"></div><div class="field"><label class="label">ISF</label><input id="cpCorrectionIsf" type="number" step="0.1" min="0"></div></div></div><div class="section-block"><h3>⚙️ เกณฑ์และเวอร์ชัน</h3><div class="subgrid"><div class="field"><label class="label">Low Threshold</label><input id="cpLow" type="number" step="1" min="0"></div><div class="field"><label class="label">Fasting Upper</label><input id="cpFast" type="number" step="1" min="0"></div><div class="field"><label class="label">Postmeal Upper</label><input id="cpPost" type="number" step="1" min="0"></div><div class="field"><label class="label">Very High Threshold</label><input id="cpVeryHigh" type="number" step="1" min="0"></div><div class="field"><label class="label">Rule Version</label><input id="cpRuleVersion"></div><div class="field"><label class="label">Doctor ผู้รับรอง</label><input id="cpDoctorId" readonly></div></div></div><div class="field"><label class="label">เหตุผลการบันทึก/Publish *</label><textarea id="cpReason" maxlength="500" placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"></textarea></div><div id="cpStatus" class="note"></div><div class="toolbar"><button class="btn secondary" onclick="closeClinicalModal()">ยกเลิก</button><button class="btn info" onclick="saveClinicalDraft()">บันทึก Draft</button><button class="btn success" onclick="publishClinicalPlan()">Publish แผน</button></div></div></div>
 
 <script>
@@ -55,15 +112,524 @@ function setAlert(msg,type='info'){const e=document.getElementById('globalAlert'
 function esc(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function fmt(v){if(!v)return'—';try{return new Date(v).toLocaleString('th-TH')}catch(e){return String(v)}}
 function roleText(r){return r==='ADMIN'?'🛠️ Admin':r==='DOCTOR'?'👨‍⚕️ แพทย์':r==='NURSE'?'👩‍⚕️ พยาบาล':'ผู้ใช้'}
-async function init(){try{await liff.init({liffId:LIFF_ID});if(!liff.isLoggedIn()){liff.login();return}profile=await liff.getProfile();myIdToken=liff.getIDToken();if(!myIdToken)throw new Error('ไม่พบข้อมูลยืนยันตัวตนจาก LINE');const d=await api({type:'nurseData',idToken:myIdToken});show('loading',false);if(d.authorized){currentRole=d.role||'';document.getElementById('rolePill').textContent=roleText(currentRole);document.getElementById('pageSubtitle').textContent=`สวัสดี, ${profile.displayName||d.actor?.name||''}`;careData=d;if(currentRole==='ADMIN'){document.getElementById('pageTitle').textContent='ระบบผู้ดูแลระบบ';show('adminView');await Promise.all([loadAdminRequests('PENDING'),loadAdminUsers(),loadAssignmentData()]);}else{document.getElementById('pageTitle').textContent='ระบบหลังบ้านทีมดูแล';show('careView');renderCareData();setAlert('เข้าสู่ระบบเรียบร้อย','good');}return}if(d.yourUserId){document.getElementById('rolePill').textContent='ยังไม่มีสิทธิ์';document.getElementById('pageSubtitle').textContent=`สวัสดี, ${profile.displayName||''}`;show('requestView');await loadMyRequest();setAlert('บัญชีนี้ยังไม่มีสิทธิ์ทีมดูแล','info');return}throw new Error(d.error||'ไม่ผ่านการยืนยันตัวตน')}catch(e){show('loading',false);setAlert(e.message||'ไม่สามารถเชื่อมต่อระบบได้','bad')}}
+async function init(){try{await liff.init({liffId:LIFF_ID});if(!liff.isLoggedIn()){liff.login();return}profile=await liff.getProfile();myIdToken=liff.getIDToken();if(!myIdToken)throw new Error('ไม่พบข้อมูลยืนยันตัวตนจาก LINE');const d=await api({type:'nurseData',idToken:myIdToken});show('loading',false);if(d.authorized){currentRole=d.role||'';document.getElementById('rolePill').textContent=roleText(currentRole);document.getElementById('pageSubtitle').textContent=`สวัสดี, ${profile.displayName||d.actor?.name||''}`;careData=d;if(currentRole==='ADMIN'){document.getElementById('pageTitle').textContent='ระบบผู้ดูแลระบบ';show('adminView');await Promise.all([loadAdminRequests('PENDING'),loadAdminUsers(),loadAssignmentData()]);}else{
+  document.getElementById('pageTitle').textContent='ระบบหลังบ้านทีมดูแล';
+
+  show('careView');
+
+  show(
+    'nurseTools',
+    currentRole === 'NURSE'
+  );
+
+  renderCareData();
+
+  setAlert(
+    'เข้าสู่ระบบเรียบร้อย',
+    'good'
+  );
+}return}if(d.yourUserId){document.getElementById('rolePill').textContent='ยังไม่มีสิทธิ์';document.getElementById('pageSubtitle').textContent=`สวัสดี, ${profile.displayName||''}`;show('requestView');await loadMyRequest();setAlert('บัญชีนี้ยังไม่มีสิทธิ์ทีมดูแล','info');return}throw new Error(d.error||'ไม่ผ่านการยืนยันตัวตน')}catch(e){show('loading',false);setAlert(e.message||'ไม่สามารถเชื่อมต่อระบบได้','bad')}}
 
 async function loadMyRequest(){try{const d=await api({type:'getMyStaffAccessRequest',idToken:myIdToken});const b=document.getElementById('requestStatusBox');if(!d.request){b.classList.add('hidden');return}const r=d.request;b.classList.remove('hidden');b.className='alert '+(r.status==='APPROVED'?'good':r.status==='REJECTED'?'bad':'');b.textContent=`สถานะคำขอ: ${r.status} · Request ID: ${r.requestId} · สิทธิ์ที่ขอ: ${r.requestedRole}${r.decisionReason?' · เหตุผล: '+r.decisionReason:''}`;show('requestForm',r.status==='REJECTED')}catch(e){}}
 async function submitAccessRequest(){const role=document.querySelector('input[name="requestedRole"]:checked')?.value||'';const vals={fullName:document.getElementById('fullName').value.trim(),organization:document.getElementById('organization').value.trim(),contact:document.getElementById('contact').value.trim(),reason:document.getElementById('reason').value.trim()};if(!role||Object.values(vals).some(v=>!v)){alert('กรุณากรอกข้อมูลให้ครบ');return}const b=document.getElementById('submitRequestBtn');b.disabled=true;try{const d=await api({type:'submitStaffAccessRequest',idToken:myIdToken,requestedRole:role,...vals});const box=document.getElementById('requestStatusBox');box.className='alert good';box.classList.remove('hidden');box.textContent=`✅ ส่งคำขอแล้ว · Request ID: ${d.requestId} · สถานะ PENDING`;show('requestForm',false);setAlert('ส่งคำขอให้ Admin แล้ว','good')}catch(e){alert(e.message)}finally{b.disabled=false}}
 
+function scrollToPatientSearch() {
+  const input = document.getElementById('patientSearch');
+
+  if (!input) return;
+
+  input.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center'
+  });
+
+  setTimeout(() => input.focus(), 250);
+}
+
+
+async function refreshNurseView() {
+
+  if (currentRole !== 'NURSE') return;
+
+  await loadCareView();
+}
+
+
+function closeNurseActionModal() {
+
+  const modal =
+    document.getElementById('nurseActionModal');
+
+  if (modal) {
+    modal.classList.remove('show');
+  }
+}
+
+
+function openNurseActionModal(title, caption, html) {
+
+  document.getElementById(
+    'nurseActionTitle'
+  ).textContent = title;
+
+  document.getElementById(
+    'nurseActionCaption'
+  ).textContent = caption || '';
+
+  document.getElementById(
+    'nurseActionBody'
+  ).innerHTML = html;
+
+  document.getElementById(
+    'nurseActionModal'
+  ).classList.add('show');
+}
+
+
+function getCarePatient(patientId) {
+
+  const patients = careData?.patients || [];
+
+  return patients.find(
+    p => String(p.userId) === String(patientId)
+  ) || null;
+}
+
+
+/* =========================================================
+   1. ยืนยันน้ำหนัก
+   ========================================================= */
+
+function openNurseWeight(patientId, name, currentWeight) {
+
+  if (currentRole !== 'NURSE') return;
+
+  const patient =
+    getCarePatient(patientId) || {};
+
+  const oldWeight =
+    currentWeight ||
+    patient.weightKg ||
+    '';
+
+  openNurseActionModal(
+    '⚖️ ยืนยันน้ำหนักผู้ป่วย',
+    `${name || patient.name || patientId} · ${patientId}`,
+
+    `
+    <div class="alert info">
+      ใช้สำหรับยืนยันข้อมูลน้ำหนักของผู้ป่วย
+      ไม่ได้แก้ Clinical Plan
+    </div>
+
+    <div class="kv">
+      <b>น้ำหนักเดิม</b>
+      <span>${esc(oldWeight || '—')} kg</span>
+    </div>
+
+    <div class="field">
+      <label class="label">
+        น้ำหนักที่ยืนยัน (kg) *
+      </label>
+
+      <input
+        id="nurseWeightValue"
+        type="number"
+        min="0.1"
+        max="500"
+        step="0.1"
+        value="${esc(oldWeight)}">
+    </div>
+
+    <div class="field">
+      <label class="label">
+        หมายเหตุ
+      </label>
+
+      <textarea
+        id="nurseWeightReason"
+        maxlength="500"
+        placeholder="ระบุรายละเอียดการตรวจสอบ ถ้ามี">
+      </textarea>
+    </div>
+
+    <div class="toolbar">
+
+      <button
+        class="btn secondary"
+        type="button"
+        onclick="closeNurseActionModal()">
+        ยกเลิก
+      </button>
+
+      <button
+        class="btn primary"
+        type="button"
+        onclick="submitNurseWeight('${esc(patientId)}')">
+        ยืนยันน้ำหนัก
+      </button>
+
+    </div>
+    `
+  );
+}
+
+
+async function submitNurseWeight(patientId) {
+
+  const weight =
+    Number(
+      document.getElementById(
+        'nurseWeightValue'
+      ).value
+    );
+
+  const reason =
+    (
+      document.getElementById(
+        'nurseWeightReason'
+      ).value || ''
+    ).trim()
+    || 'ทีมพยาบาลตรวจสอบและยืนยันน้ำหนัก';
+
+  if (
+    !isFinite(weight) ||
+    weight <= 0 ||
+    weight > 500
+  ) {
+    alert('น้ำหนักไม่ถูกต้อง');
+    return;
+  }
+
+  try {
+
+    const result = await api({
+
+      type: 'updatePatientSettings',
+
+      idToken: myIdToken,
+
+      targetUserId: patientId,
+
+      weightKg: weight,
+
+      reason: reason
+
+    });
+
+    closeNurseActionModal();
+
+    await loadCareView();
+
+    if (result.reviewRequired) {
+
+      setAlert(
+        'รับข้อมูลน้ำหนักแล้ว แต่ยังต้องตรวจสอบเพิ่มเติม',
+        'info'
+      );
+
+    } else {
+
+      setAlert(
+        'ยืนยันน้ำหนักผู้ป่วยแล้ว',
+        'good'
+      );
+    }
+
+  } catch (e) {
+
+    setAlert(
+      e.message ||
+      'ยืนยันน้ำหนักไม่สำเร็จ',
+      'bad'
+    );
+  }
+}
+
+
+/* =========================================================
+   2. ส่งข้อความถึงผู้ป่วย
+   ========================================================= */
+
+function openNurseMessage(patientId, name) {
+
+  if (currentRole !== 'NURSE') return;
+
+  openNurseActionModal(
+
+    '💬 ส่งข้อความถึงผู้ป่วย',
+
+    `${name || patientId} · ${patientId}`,
+
+    `
+    <div class="field">
+
+      <label class="label">
+        ข้อความ *
+      </label>
+
+      <textarea
+        id="nurseMessageText"
+        maxlength="1000"
+        placeholder="เขียนข้อความที่ต้องการส่ง">
+      </textarea>
+
+    </div>
+
+    <div class="alert info">
+      ข้อความจะถูกส่งในนามระบบ
+      และการส่งจะถูกบันทึกใน Audit Log
+    </div>
+
+    <div class="toolbar">
+
+      <button
+        class="btn secondary"
+        type="button"
+        onclick="closeNurseActionModal()">
+        ยกเลิก
+      </button>
+
+      <button
+        class="btn info"
+        type="button"
+        onclick="submitNurseMessage('${esc(patientId)}')">
+        ส่งข้อความ
+      </button>
+
+    </div>
+    `
+  );
+}
+
+
+async function submitNurseMessage(patientId) {
+
+  const message =
+    (
+      document.getElementById(
+        'nurseMessageText'
+      ).value || ''
+    ).trim();
+
+  if (!message) {
+
+    alert(
+      'กรุณากรอกข้อความ'
+    );
+
+    return;
+  }
+
+  try {
+
+    await api({
+
+      type: 'sendPatientMessage',
+
+      idToken: myIdToken,
+
+      patientId: patientId,
+
+      message: message
+
+    });
+
+    closeNurseActionModal();
+
+    setAlert(
+      'ส่งข้อความถึงผู้ป่วยแล้ว',
+      'good'
+    );
+
+  } catch (e) {
+
+    setAlert(
+      e.message ||
+      'ส่งข้อความไม่สำเร็จ',
+      'bad'
+    );
+  }
+}
+
+
+/* =========================================================
+   3. แจ้งแพทย์
+   ========================================================= */
+
+function openNurseEscalation(patientId, name) {
+
+  if (currentRole !== 'NURSE') return;
+
+  openNurseActionModal(
+
+    '📨 แจ้งแพทย์',
+
+    `${name || patientId} · ${patientId}`,
+
+    `
+    <div class="field">
+
+      <label class="label">
+        รายละเอียดสำหรับแพทย์ *
+      </label>
+
+      <textarea
+        id="nurseEscalationText"
+        maxlength="1200"
+        placeholder="ระบุสิ่งที่พบ และสิ่งที่ต้องการให้แพทย์พิจารณา">
+      </textarea>
+
+    </div>
+
+    <div class="alert warn">
+      การแจ้งแพทย์จะไม่เปลี่ยน Clinical Plan
+      และไม่คำนวณยาโดยอัตโนมัติ
+    </div>
+
+    <div class="toolbar">
+
+      <button
+        class="btn secondary"
+        type="button"
+        onclick="closeNurseActionModal()">
+        ยกเลิก
+      </button>
+
+      <button
+        class="btn danger"
+        type="button"
+        onclick="submitNurseEscalation(
+          '${esc(patientId)}',
+          '${esc(name)}'
+        )">
+        แจ้งแพทย์
+      </button>
+
+    </div>
+    `
+  );
+}
+
+
+async function submitNurseEscalation(
+  patientId,
+  name
+) {
+
+  const message =
+    (
+      document.getElementById(
+        'nurseEscalationText'
+      ).value || ''
+    ).trim();
+
+  if (message.length < 3) {
+
+    alert(
+      'กรุณาระบุรายละเอียดอย่างน้อย 3 ตัวอักษร'
+    );
+
+    return;
+  }
+
+  try {
+
+    await api({
+
+      type: 'sendPatientMessage',
+
+      idToken: myIdToken,
+
+      patientId: patientId,
+
+      message:
+        `[แจ้งแพทย์โดยพยาบาล] ${message}`
+
+    });
+
+    closeNurseActionModal();
+
+    setAlert(
+      `แจ้งแพทย์เกี่ยวกับ ${
+        name || patientId
+      } แล้ว`,
+      'good'
+    );
+
+  } catch (e) {
+
+    setAlert(
+      e.message ||
+      'แจ้งแพทย์ไม่สำเร็จ',
+      'bad'
+    );
+  }
+}
 function switchCareTab(tab){document.querySelectorAll('#careView .tab').forEach((b,i)=>b.classList.toggle('active',(tab==='patients'&&i===0)||(tab==='alerts'&&i===1)));show('carePatientsTab',tab==='patients');show('careAlertsTab',tab==='alerts');if(tab==='alerts')renderAlerts()}
 function patientStatus(p){if(p.hypoToday)return'hypo';if(p.todayCarbs>p.target)return'over';if(p.todayCarbs>0)return'logged';return'none'}
 function renderCareData(){const s=careData?.summary||{};document.getElementById('careViewTitle').textContent=currentRole==='NURSE'?'👩‍⚕️ พื้นที่พยาบาล':'👨‍⚕️ พื้นที่แพทย์';document.getElementById('careSummary').innerHTML=`<div class="meta"><strong>${s.totalPatients||0}</strong><span>ผู้ป่วยทั้งหมด</span></div><div class="meta"><strong>${s.loggedToday||0}</strong><span>มีการบันทึกวันนี้</span></div><div class="meta"><strong>${s.overTargetToday||0}</strong><span>คาร์บเกินเป้า</span></div><div class="meta"><strong>${s.hypoToday||0}</strong><span>น้ำตาลต่ำ</span></div><div class="meta"><strong>${s.alertsToday||0}</strong><span>Alert ที่เปิดอยู่</span></div>`;renderPatients()}
-function renderPatients(){const q=(document.getElementById('patientSearch').value||'').trim().toLowerCase(),f=document.getElementById('patientFilter').value;const arr=(careData?.patients||[]).filter(p=>(f==='all'||patientStatus(p)===f)&&(!q||(p.name||'').toLowerCase().includes(q)));document.getElementById('patientList').innerHTML=arr.length?arr.map((p,i)=>`<article class="patient-card"><div class="patient-head"><div><div class="patient-name">${esc(p.name||'ไม่ทราบชื่อ')}</div><div class="muted">${esc(p.userId)}</div></div><div>${p.hypoToday?'<span class="pill bad">⚠ น้ำตาลต่ำ</span>':p.todayCarbs>p.target?'<span class="pill warn">คาร์บเกินเป้า</span>':p.todayCarbs>0?'<span class="pill good">มีการบันทึก</span>':'<span class="pill info">ยังไม่บันทึก</span>'}</div></div><div class="patient-stats"><div class="stat"><b>${p.todayCarbs||0} ก.</b><span>คาร์บวันนี้ / เป้า ${p.target||0}</span></div><div class="stat"><b>${p.weightKg||'—'}</b><span>น้ำหนัก kg</span></div><div class="stat"><b>${p.isf||'—'}</b><span>ISF</span></div><div class="stat"><b>${p.icr||'—'}</b><span>ICR เช้า</span></div></div><div class="activity">${(p.activity||[]).slice(0,5).map(a=>`<div class="activity-row"><span>${a.type==='glucose'?'🩸':a.type==='insulin'?'💉':'🍚'} ${esc(a.label||'')}</span><span>${esc(a.value||'')}</span></div>`).join('')||'<div class="muted">ยังไม่มีรายการล่าสุด</div>'}</div><div class="toolbar" style="margin-top:10px"><button class="btn primary" onclick="openPatientDetail(this.dataset.id)" data-id="${esc(p.userId)}">ดูรายละเอียดผู้ป่วย</button>${currentRole==='DOCTOR'?`<button class="btn info" onclick="openClinicalPlan(this.dataset.id)" data-id="${esc(p.userId)}">แผนการรักษา</button>`:''}</div></article>`).join(''):'<div class="empty">ไม่พบผู้ป่วยที่ตรงเงื่อนไข</div>'}
+function renderPatients(){const q=(document.getElementById('patientSearch').value||'').trim().toLowerCase(),f=document.getElementById('patientFilter').value;const arr=(careData?.patients||[]).filter(p=>(f==='all'||patientStatus(p)===f)&&(!q||(p.name||'').toLowerCase().includes(q)));document.getElementById('patientList').innerHTML=arr.length?arr.map((p,i)=>`<article class="patient-card"><div class="patient-head"><div><div class="patient-name">${esc(p.name||'ไม่ทราบชื่อ')}</div><div class="muted">${esc(p.userId)}</div></div><div>${p.hypoToday?'<span class="pill bad">⚠ น้ำตาลต่ำ</span>':p.todayCarbs>p.target?'<span class="pill warn">คาร์บเกินเป้า</span>':p.todayCarbs>0?'<span class="pill good">มีการบันทึก</span>':'<span class="pill info">ยังไม่บันทึก</span>'}</div></div><div class="patient-stats"><div class="stat"><b>${p.todayCarbs||0} ก.</b><span>คาร์บวันนี้ / เป้า ${p.target||0}</span></div><div class="stat"><b>${p.weightKg||'—'}</b><span>น้ำหนัก kg</span></div><div class="stat"><b>${p.isf||'—'}</b><span>ISF</span></div><div class="stat"><b>${p.icr||'—'}</b><span>ICR เช้า</span></div></div><div class="activity">${(p.activity||[]).slice(0,5).map(a=>`<div class="activity-row"><span>${a.type==='glucose'?'🩸':a.type==='insulin'?'💉':'🍚'} ${esc(a.label||'')}</span><span>${esc(a.value||'')}</span></div>`).join('')||'<div class="muted">ยังไม่มีรายการล่าสุด</div>'}</div><div class="toolbar" style="margin-top:10px">
+
+  <button
+    class="btn primary"
+    type="button"
+    onclick="openPatientDetail(this.dataset.id)"
+    data-id="${esc(p.userId)}">
+    ดูรายละเอียดผู้ป่วย
+  </button>
+
+  ${currentRole==='DOCTOR' ? `
+  <button
+    class="btn info"
+    type="button"
+    onclick="openClinicalPlan(this.dataset.id)"
+    data-id="${esc(p.userId)}">
+    แผนการรักษา
+  </button>
+  ` : ''}
+
+  ${currentRole==='NURSE' ? `
+
+  <button
+    class="btn secondary"
+    type="button"
+    onclick="openNurseWeight(
+      this.dataset.id,
+      this.dataset.name,
+      this.dataset.weight
+    )"
+    data-id="${esc(p.userId)}"
+    data-name="${esc(p.name || '')}"
+    data-weight="${esc(p.weightKg || '')}">
+    ⚖️ ยืนยันน้ำหนัก
+  </button>
+
+  <button
+    class="btn info"
+    type="button"
+    onclick="openNurseMessage(
+      this.dataset.id,
+      this.dataset.name
+    )"
+    data-id="${esc(p.userId)}"
+    data-name="${esc(p.name || '')}">
+    💬 ส่งข้อความ
+  </button>
+
+  <button
+    class="btn danger"
+    type="button"
+    onclick="openNurseEscalation(
+      this.dataset.id,
+      this.dataset.name
+    )"
+    data-id="${esc(p.userId)}"
+    data-name="${esc(p.name || '')}">
+    📨 แจ้งแพทย์
+  </button>
+  ` : ''}
+</div></article>`).join(''):'<div class="empty">ไม่พบผู้ป่วยที่ตรงเงื่อนไข</div>'}
 async function loadCareView(){try{const d=await api({type:'nurseData',idToken:myIdToken});if(!d.authorized)throw new Error(d.error||'ไม่มีสิทธิ์');careData=d;renderCareData();setAlert('รีเฟรชข้อมูลแล้ว','good')}catch(e){setAlert(e.message||'โหลดข้อมูลไม่สำเร็จ','bad')}}
 function renderAlerts(){const arr=Object.values(careData?.patients||{});const patients=careData?.patients||[];const alerts=[];patients.forEach(p=>{if(p.alertsToday)alerts.push(p)});document.getElementById('alertList').innerHTML=alerts.length?alerts.map(p=>`<div class="request-card"><div class="request-head"><div><div class="request-name">${esc(p.name)}</div><div class="muted">${p.alertsToday} Alert ที่เปิดอยู่วันนี้</div></div><span class="pill bad">OPEN</span></div><button class="btn primary" style="margin-top:10px" onclick="openPatientDetail(this.dataset.id)" data-id="${esc(p.userId)}">ดูผู้ป่วย</button></div>`).join(''):'<div class="empty">ไม่มี Alert ที่เปิดอยู่จากภาพรวมวันนี้</div>'}
 
