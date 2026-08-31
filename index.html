@@ -634,7 +634,7 @@ async function analyzeGlucose() {
       </div>
 
       <div class="result-message">
-        ${esc(e.message)}
+        ${e.message || 'ไม่สามารถวิเคราะห์ค่าน้ำตาลได้'}
       </div>
 
     `;
