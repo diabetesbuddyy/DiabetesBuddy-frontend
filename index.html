@@ -164,7 +164,74 @@ function updateCarbModeUI(){const a=document.getElementById('autoModeBtn'),m=doc
 function loadTodayCarbLog(){carbLogDate=getBangkokDateKey();clearStaleCarbStorage();todayLog=[];try{const raw=localStorage.getItem(getCarbStorageKey());if(raw){const parsed=JSON.parse(raw);if(parsed&&Array.isArray(parsed.entries)&&parsed.date===carbLogDate)todayLog=parsed.entries.filter(e=>e&&e.food)}}catch(e){todayLog=[]}todayLog=todayLog.map(e=>({...e,syncStatus:e.syncStatus||(e.synced?'SYNCED':'PENDING')}));renderLog();updateRing();updateCarbModeUI()}
 function saveTodayCarbLog(){try{if(!getCarbStorageKey())return;localStorage.setItem(getCarbStorageKey(),JSON.stringify({date:carbLogDate,entries:todayLog,savedAt:new Date().toISOString()}))}catch(e){}}
 function cleanupCarbLogIfNewDay(){const now=getBangkokDateKey();if(carbLogDate&&now!==carbLogDate){todayLog=[];carbLogDate=now;clearStaleCarbStorage();saveTodayCarbLog();renderLog();updateRing();updateCarbModeUI()}}
-async function initLiff(){try{await liff.init({liffId:LIFF_ID});if(!liff.isLoggedIn()){liff.login();return}const p=await liff.getProfile();profile.userId=p.userId;profile.displayName=p.displayName;myIdToken=liff.getIDToken?.();document.getElementById('patientName').textContent=p.displayName;document.getElementById('demoBanner').style.display='none';loadTodayCarbLog();await checkConsentAndContinue();}catch(e){document.getElementById('demoBanner').textContent='โหมดทดสอบ/เชื่อมต่อ LIFF ไม่สำเร็จ — ยังไม่ใช้ข้อมูลผู้ป่วยจริง';document.getElementById('patientName').textContent=profile.displayName}}
+async function initLiff() {
+
+  try {
+
+    await liff.init({
+      liffId: LIFF_ID
+    });
+
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
+    }
+
+    const consentOK =
+  await checkConsentAndContinue();
+
+if (
+  consentOK &&
+  getLiffMode() === 'report'
+) {
+  openReportMode();
+}
+
+    const p =
+      await liff.getProfile();
+
+    profile.userId =
+      p.userId;
+
+    profile.displayName =
+      p.displayName;
+
+    myIdToken =
+      liff.getIDToken?.();
+
+    document.getElementById(
+      'patientName'
+    ).textContent =
+      p.displayName;
+
+    document.getElementById(
+      'demoBanner'
+    ).style.display =
+      'none';
+
+    loadTodayCarbLog();
+
+    /* ตรวจสอบ Consent ก่อน */
+    await checkConsentAndContinue();
+
+if (getLiffMode() === 'report') {
+    openReportMode();
+}
+
+  } catch (e) {
+
+    document.getElementById(
+      'demoBanner'
+    ).textContent =
+      'โหมดทดสอบ/เชื่อมต่อ LIFF ไม่สำเร็จ — ยังไม่ใช้ข้อมูลผู้ป่วยจริง';
+
+    document.getElementById(
+      'patientName'
+    ).textContent =
+      profile.displayName;
+  }
+}
+
 async function api(body){
   const r=await fetch(GAS_WEB_APP_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)});
   const text=await r.text();
@@ -176,16 +243,56 @@ async function api(body){
   if(!r.ok) throw new Error(data?.error || `Backend HTTP ${r.status}`);
   return data;
 }
-async function checkConsentAndContinue(){
-  if(!myIdToken)return;
-  try{
-    const d=await api({type:'getConsentStatus',idToken:myIdToken});
-    if(!d.ok)throw new Error(d.error||'ตรวจสอบสถานะความยินยอมไม่สำเร็จ');
-    document.getElementById('consentVersionLabel').textContent=d.version||'—';
-    if(d.required){showConsentModal();return}
+/* =========================================================
+   ตรวจสถานะ Consent
+   คืนค่า true เมื่อใช้งานต่อได้
+   คืนค่า false เมื่อยังต้องแสดง Consent
+   ========================================================= */
+async function checkConsentAndContinue() {
+
+  if (!myIdToken) {
+    return false;
+  }
+
+  try {
+
+    const d = await api({
+      type: 'getConsentStatus',
+      idToken: myIdToken
+    });
+
+    if (!d.ok) {
+      throw new Error(
+        d.error ||
+        'ตรวจสอบสถานะความยินยอมไม่สำเร็จ'
+      );
+    }
+
+    document.getElementById(
+      'consentVersionLabel'
+    ).textContent =
+      d.version || '—';
+
+    if (d.required) {
+
+      showConsentModal();
+
+      return false;
+    }
+
     await fetchMySettings();
-  }catch(e){
-    document.getElementById('insulinPlanNotice').textContent='ไม่สามารถตรวจสอบสถานะความยินยอมได้: '+e.message;
+
+    return true;
+
+  } catch (e) {
+
+    document.getElementById(
+      'insulinPlanNotice'
+    ).textContent =
+      'ไม่สามารถตรวจสอบสถานะความยินยอมได้: ' +
+      e.message;
+
+    return false;
   }
 }
 function showConsentModal(){document.getElementById('consentModal').classList.add('show');document.body.style.overflow='hidden'}
@@ -800,11 +907,436 @@ function buildHypoglycemiaAdvice(value) {
 }
 async function loadHistory(){if(!myIdToken)return;const days=Number(document.getElementById('historyDays').value)||14;try{const d=await api({type:'myHistory',idToken:myIdToken,days});if(!d.ok)throw Error(d.error);historyData=d;document.getElementById('historyErrorNotice').style.display='none';renderHistory()}catch(e){document.getElementById('historyErrorNotice').style.display='flex';document.getElementById('historyErrorMsg').textContent=e.message||'โหลดประวัติไม่สำเร็จ'}}
 function renderHistory(){renderGlucoseChart(historyData.glucose||[]);renderCarbChart(historyData.carbDaily||[],historyData.patient?.target||dailyTarget);renderInsulinHistory(historyData.insulin||[])}
-function renderGlucoseChart(data){const c=document.getElementById('glucoseChart');if(!data.length){c.innerHTML='<p class="muted">ยังไม่มีข้อมูล</p>';return}const w=320,h=150,pL=30,pR=10,pT=10,pB=10;const values=data.map(d=>Number(d.value));const minV=Math.min(60,...values)-10,maxV=Math.max(220,...values)+10;const x=i=>pL+(data.length>1?(i/(data.length-1))*(w-pL-pR):(w-pL-pR)/2);const y=v=>pT+(1-(v-minV)/(maxV-minV))*(h-pT-pB);const pts=data.map((d,i)=>`${x(i)},${y(d.value)}`).join(' ');c.innerHTML=`<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto"><line x1="${pL}" y1="${y(70)}" x2="${w-pR}" y2="${y(70)}" style="stroke:var(--border)" stroke-dasharray="3,3"/><line x1="${pL}" y1="${y(180)}" x2="${w-pR}" y2="${y(180)}" style="stroke:var(--border)" stroke-dasharray="3,3"/><polyline points="${pts}" fill="none" style="stroke:var(--brand)" stroke-width="1.5"/>${data.map((d,i)=>`<circle cx="${x(i)}" cy="${y(d.value)}" r="3" style="fill:${d.level==='low'||d.level==='very-high'?'var(--over)':d.level==='high'?'var(--warn)':'var(--good)'}"/>`).join('')}</svg>`}
+/* =========================================================
+   สร้างกราฟน้ำตาล
+   - แกน Y กำหนดตายตัว 0–300 mg/dL
+   - มีตัวเลขกำกับแกน Y
+   - มีวันที่/เวลาใต้กราฟ
+   - มีเส้นอ้างอิง 70 และ 180 mg/dL
+   ========================================================= */
+function renderGlucoseChart(data) {
+
+  const c =
+    document.getElementById('glucoseChart');
+
+  /* ถ้าไม่มีข้อมูล */
+  if (!data.length) {
+
+    c.innerHTML =
+      '<p class="muted">ยังไม่มีข้อมูล</p>';
+
+    return;
+  }
+
+  /* -------------------------------------------------------
+     ขนาดกราฟ
+     ------------------------------------------------------- */
+  const w = 340;
+  const h = 220;
+
+  /* ระยะขอบสำหรับตัวเลขแกน Y และวันที่ด้านล่าง */
+  const pL = 42;
+  const pR = 12;
+  const pT = 12;
+  const pB = 48;
+
+  /* -------------------------------------------------------
+     กำหนดช่วงแกน Y แบบตายตัว
+     ------------------------------------------------------- */
+  const minY = 0;
+  const maxY = 300;
+
+  /* -------------------------------------------------------
+     ตำแหน่ง X
+     ------------------------------------------------------- */
+  const x = (i) => {
+
+    if (data.length <= 1) {
+      return pL + (w - pL - pR) / 2;
+    }
+
+    return (
+      pL +
+      (i / (data.length - 1)) *
+      (w - pL - pR)
+    );
+  };
+
+  /* -------------------------------------------------------
+     ตำแหน่ง Y
+     ------------------------------------------------------- */
+  const y = (value) => {
+
+    const v = Math.max(
+      minY,
+      Math.min(maxY, Number(value) || 0)
+    );
+
+    return (
+      pT +
+      (1 - (v - minY) / (maxY - minY)) *
+      (h - pT - pB)
+    );
+  };
+
+  /* -------------------------------------------------------
+     สร้างเส้นกริดและตัวเลขแกน Y
+     0, 50, 100, 150, 200, 250, 300
+     ------------------------------------------------------- */
+  const yTicks = [
+    0,
+    50,
+    100,
+    150,
+    200,
+    250,
+    300
+  ];
+
+  const yAxis = yTicks.map(value => {
+
+    const yy = y(value);
+
+    return `
+      <line
+        x1="${pL}"
+        y1="${yy}"
+        x2="${w - pR}"
+        y2="${yy}"
+        style="
+          stroke:var(--border);
+          stroke-width:1;
+        "
+      />
+
+      <text
+        x="${pL - 7}"
+        y="${yy + 4}"
+        text-anchor="end"
+        style="
+          fill:var(--ink-soft);
+          font-size:10px;
+          font-family:Sarabun,sans-serif;
+        "
+      >
+        ${value}
+      </text>
+    `;
+
+  }).join('');
+
+  /* -------------------------------------------------------
+     เส้นอ้างอิง 70 mg/dL
+     ------------------------------------------------------- */
+  const lowLine = `
+    <line
+      x1="${pL}"
+      y1="${y(70)}"
+      x2="${w - pR}"
+      y2="${y(70)}"
+      style="
+        stroke:var(--over);
+        stroke-width:1.2;
+        stroke-dasharray:4,4;
+      "
+    />
+
+    <text
+      x="${w - pR - 2}"
+      y="${y(70) - 4}"
+      text-anchor="end"
+      style="
+        fill:var(--over);
+        font-size:9px;
+        font-family:Sarabun,sans-serif;
+      "
+    >
+      70 = เกณฑ์น้ำตาลต่ำ
+    </text>
+  `;
+
+  /* -------------------------------------------------------
+     เส้นอ้างอิง 180 mg/dL
+     ------------------------------------------------------- */
+  const postmealLine = `
+    <line
+      x1="${pL}"
+      y1="${y(180)}"
+      x2="${w - pR}"
+      y2="${y(180)}"
+      style="
+        stroke:var(--warn);
+        stroke-width:1.2;
+        stroke-dasharray:4,4;
+      "
+    />
+
+    <text
+      x="${w - pR - 2}"
+      y="${y(180) - 4}"
+      text-anchor="end"
+      style="
+        fill:var(--warn);
+        font-size:9px;
+        font-family:Sarabun,sans-serif;
+      "
+    >
+      180 = เกณฑ์หลังอาหาร
+    </text>
+  `;
+
+  /* -------------------------------------------------------
+     เส้นกราฟ
+     ------------------------------------------------------- */
+  const pts = data
+    .map((d, i) => {
+      return `${x(i)},${y(d.value)}`;
+    })
+    .join(' ');
+
+  /* -------------------------------------------------------
+     จุดข้อมูล
+     ------------------------------------------------------- */
+  const circles = data
+    .map((d, i) => {
+
+      let pointColor =
+        'var(--good)';
+
+      if (
+        d.level === 'low' ||
+        d.level === 'very-high'
+      ) {
+        pointColor =
+          'var(--over)';
+      }
+      else if (
+        d.level === 'high'
+      ) {
+        pointColor =
+          'var(--warn)';
+      }
+
+      return `
+        <circle
+          cx="${x(i)}"
+          cy="${y(d.value)}"
+          r="3.5"
+          style="
+            fill:${pointColor};
+          "
+        />
+      `;
+
+    })
+    .join('');
+
+  /* -------------------------------------------------------
+     วันที่/เวลาใต้กราฟ
+     
+     ถ้ามีข้อมูลจำนวนมาก จะไม่แสดงทุกจุด
+     เพื่อป้องกันวันที่ซ้อนกัน
+     ------------------------------------------------------- */
+  const maxXLabels = 5;
+
+  const step =
+    Math.max(
+      1,
+      Math.ceil(
+        data.length / maxXLabels
+      )
+    );
+
+  const xLabels = data
+    .map((d, i) => {
+
+      const isLast =
+        i === data.length - 1;
+
+      if (
+        i % step !== 0 &&
+        !isLast
+      ) {
+        return '';
+      }
+
+      const date =
+        new Date(d.time);
+
+      let label =
+        'ไม่ระบุเวลา';
+
+      if (
+        !isNaN(date.getTime())
+      ) {
+
+        const datePart =
+          date.toLocaleDateString(
+            'th-TH',
+            {
+              day: '2-digit',
+              month: '2-digit'
+            }
+          );
+
+        const timePart =
+          date.toLocaleTimeString(
+            'th-TH',
+            {
+              hour: '2-digit',
+              minute: '2-digit'
+            }
+          );
+
+        label =
+          `${datePart}\n${timePart}`;
+      }
+
+      const parts =
+        label.split('\n');
+
+      return `
+        <text
+          x="${x(i)}"
+          y="${h - pB + 17}"
+          text-anchor="middle"
+          style="
+            fill:var(--ink-soft);
+            font-size:8.5px;
+            font-family:Sarabun,sans-serif;
+          "
+        >
+          <tspan
+            x="${x(i)}"
+            dy="0"
+          >
+            ${parts[0]}
+          </tspan>
+
+          <tspan
+            x="${x(i)}"
+            dy="11"
+          >
+            ${parts[1] || ''}
+          </tspan>
+        </text>
+      `;
+
+    })
+    .join('');
+
+  /* -------------------------------------------------------
+     วาด SVG
+     ------------------------------------------------------- */
+  c.innerHTML = `
+    <div
+      style="
+        width:100%;
+        overflow:hidden;
+      "
+    >
+
+      <svg
+        viewBox="0 0 ${w} ${h}"
+        style="
+          width:100%;
+          height:auto;
+          display:block;
+        "
+        aria-label="กราฟระดับน้ำตาลย้อนหลัง"
+      >
+
+        <!-- แกนและตัวเลข 0–300 -->
+        ${yAxis}
+
+        <!-- เส้นอ้างอิงน้ำตาลต่ำ -->
+        ${lowLine}
+
+        <!-- เส้นอ้างอิงหลังอาหาร -->
+        ${postmealLine}
+
+        <!-- เส้นกราฟ -->
+        <polyline
+          points="${pts}"
+          fill="none"
+          style="
+            stroke:var(--brand);
+            stroke-width:1.8;
+            stroke-linejoin:round;
+            stroke-linecap:round;
+          "
+        />
+
+        <!-- จุดข้อมูล -->
+        ${circles}
+
+        <!-- วันที่ / เวลา -->
+        ${xLabels}
+
+      </svg>
+
+    </div>
+  `;
+}
 function renderCarbChart(data,target){const c=document.getElementById('carbChart');if(!data.length){c.innerHTML='<p class="muted">ยังไม่มีข้อมูล</p>';return}const w=320,h=150,pL=8,pR=8,pT=10,pB=22,maxV=Math.max(target,...data.map(d=>d.totalCarbs))*1.15,g=(w-pL-pR)/data.length,bW=g*.6;const bars=data.map((d,i)=>{const bh=(d.totalCarbs/maxV)*(h-pT-pB),bx=pL+i*g+(g-bW)/2,by=h-pB-bh;return `<rect x="${bx}" y="${by}" width="${bW}" height="${Math.max(bh,1)}" rx="2" style="fill:${d.totalCarbs>target?'var(--over)':'var(--good)'}"/>`}).join('');const ty=h-pB-(target/maxV)*(h-pT-pB);c.innerHTML=`<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto"><line x1="${pL}" y1="${ty}" x2="${w-pR}" y2="${ty}" style="stroke:var(--brand)" stroke-dasharray="3,3"/>${bars}</svg>`}
 function renderInsulinHistory(data){const c=document.getElementById('insulinHistoryList');c.innerHTML=data.length?data.slice().reverse().map(d=>`<li class="log-item"><span class="log-food">${new Date(d.time).toLocaleString('th-TH')}</span><span class="log-carbs">${d.totalDose} หน่วย</span></li>`).join(''):'<li class="muted">ยังไม่มีประวัติอินซูลิน</li>'}
 async function requestPdfReport(){const btn=document.getElementById('pdfBtn'),status=document.getElementById('pdfStatus');btn.disabled=true;status.textContent='กำลังสร้างรายงาน…';try{const d=await api({type:'requestPdfReport',idToken:myIdToken,displayName:profile.displayName,days:Number(document.getElementById('historyDays').value)||14});if(!d.ok)throw Error(d.error);status.innerHTML=d.url?`สร้างรายงานแล้ว <a href="${d.url}" target="_blank" rel="noopener">เปิด PDF</a>`:'สร้างรายงานแล้ว';if(d.pushed)status.textContent='ส่งลิงก์รายงานเข้า LINE ของคุณแล้ว'}catch(e){status.textContent=e.message||'สร้าง PDF ไม่สำเร็จ'}finally{btn.disabled=false}}
 function openInExternalBrowser(){if(window.liff?.isInClient?.())liff.openWindow({url:window.location.href,external:true});else window.open(window.location.href,'_blank')}
+/* =========================================================
+   ตรวจสอบว่าผู้ใช้เข้ามาจาก Rich Menu ด้วย mode อะไร
+   ========================================================= */
+function getLiffMode() {
+  const params = new URLSearchParams(
+    window.location.search
+  );
+
+  return params.get('mode') || '';
+}
+
+/* =========================================================
+   เปิดแท็บประวัติเมื่อเข้ามาด้วย mode=report
+   ========================================================= */
+function openReportMode() {
+
+  const historyBtn =
+    document.getElementById('tab-history');
+
+  if (!historyBtn) {
+    return;
+  }
+
+  switchTab(
+    'history',
+    historyBtn
+  );
+
+  /* โหลดข้อมูลประวัติทันที */
+  if (!historyLoaded) {
+    historyLoaded = true;
+    loadHistory();
+  }
+
+  /* เลื่อนไปตำแหน่งปุ่มสร้างรายงาน */
+  setTimeout(() => {
+
+    const pdfBtn =
+      document.getElementById('pdfBtn');
+
+    if (pdfBtn) {
+
+      pdfBtn.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+
+      pdfBtn.focus({
+        preventScroll: true
+      });
+    }
+
+  }, 300);
+}
+
 window.addEventListener('DOMContentLoaded',()=>{renderThaiDate();populateFood();carbLogDate=getBangkokDateKey();loadCarbSyncMode();renderLog();updateRing();initLiff();scheduleCarbRetry();setInterval(()=>cleanupCarbLogIfNewDay(),60000);window.addEventListener('online',()=>{if(carbSyncMode==='auto')syncAllPending()});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&carbSyncMode==='auto')syncAllPending()});window.addEventListener('beforeunload',saveTodayCarbLog)});
 </script>
 </body></html>
