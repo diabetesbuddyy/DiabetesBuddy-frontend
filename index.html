@@ -262,6 +262,105 @@ function showConsentModal(){document.getElementById('consentModal').classList.ad
 function hideConsentModal(){document.getElementById('consentModal').classList.remove('show');document.body.style.overflow=''}
 function declineConsent(){try{if(window.liff&&liff.isInClient&&liff.isInClient()){liff.closeWindow();return}}catch(e){}alert('คุณยังไม่ได้ให้ความยินยอม จึงยังไม่สามารถใช้งานฟังก์ชันที่เก็บข้อมูลสุขภาพของ Diabetes Buddy ได้')}
 async function acceptConsent(){const cb=document.getElementById('consentCheckbox');const btn=document.getElementById('consentAcceptBtn');if(!cb.checked)return;btn.disabled=true;btn.textContent='กำลังบันทึก…';try{const d=await api({type:'recordConsent',idToken:myIdToken,consent:true});if(!d.ok)throw Error(d.error||'บันทึกความยินยอมไม่สำเร็จ');hideConsentModal();await fetchMySettings();if(getLiffMode()==='report'){openReportMode();}}catch(e){alert(e.message||'ไม่สามารถบันทึกความยินยอมได้');btn.disabled=false;btn.textContent='ยืนยันการยินยอม'}}
+async function requestPdfReport() {
+
+  const btn =
+    document.getElementById('pdfBtn');
+
+  const status =
+    document.getElementById('pdfStatus');
+
+  /* ตรวจว่าองค์ประกอบหน้าเว็บมีครบ */
+  if (!btn || !status) {
+    console.error(
+      'ไม่พบ pdfBtn หรือ pdfStatus'
+    );
+    return;
+  }
+
+  /* ต้องมี LINE ID Token */
+  if (!myIdToken) {
+
+    status.textContent =
+      'ยังไม่สามารถยืนยันตัวตนได้ กรุณารอสักครู่แล้วลองใหม่';
+
+    return;
+  }
+
+  btn.disabled = true;
+
+  status.textContent =
+    'กำลังสร้างรายงาน PDF…';
+
+  try {
+
+    const days =
+      Number(
+        document.getElementById(
+          'historyDays'
+        )?.value
+      ) || 14;
+
+    const d =
+      await api({
+
+        type:
+          'requestPdfReport',
+
+        idToken:
+          myIdToken,
+
+        displayName:
+          profile.displayName,
+
+        days:
+          days
+
+      });
+
+    console.log(
+      'requestPdfReport response:',
+      d
+    );
+
+    if (!d || !d.ok) {
+
+      throw new Error(
+        d?.error ||
+        'ไม่สามารถสร้างรายงาน PDF ได้'
+      );
+    }
+
+    if (d.url) {
+
+      status.innerHTML = `
+        <div style="
+          color:var(--good);
+          font-weight:600;
+          margin-bottom:8px;
+        ">
+          สร้างรายงาน PDF สำเร็จ
+        </div>
+
+        <a
+          href="${d.url}"
+          target="_blank"
+          rel="noopener noreferrer"
+          style="
+            display:inline-block;
+            padding:10px 14px;
+            border-radius:10px;
+            background:var(--brand);
+            color:#fff;
+            text-decoration:none;
+            font-weight:600;
+          "
+        >
+          📄 เปิดรายงาน PDF
+        </a>
+      `;
+
+  } else {status.textContent ='สร้างรายงานแล้ว แต่ไม่พบลิงก์ PDF';}if (d.pushed) {status.insertAdjacentHTML('beforeend',`<div style="margin-top:8px;color:var(--good);font-size:12px;">✓ ส่งลิงก์รายงานเข้า LINE ของคุณแล้ว</div>`);}} catch (e) {console.error('requestPdfReport error:',e);status.innerHTML = `<div style="color:var(--over);font-weight:600;margin-bottom:6px;">สร้างรายงานไม่สำเร็จ</div><div style="font-size:12px;line-height:1.6;">${esc(e?.message ||'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ')}</div>`;} finally {btn.disabled = false;}}
 document.addEventListener('DOMContentLoaded',()=>{const cb=document.getElementById('consentCheckbox');const btn=document.getElementById('consentAcceptBtn');if(cb&&btn)cb.addEventListener('change',()=>{btn.disabled=!cb.checked})});
 async function fetchMySettings(){if(!myIdToken)return;try{const d=await api({type:'mySettings',idToken:myIdToken});if(!d.ok)throw Error(d.error||'โหลดแผนไม่สำเร็จ');settings=d;dailyTarget=Number(d.carbTarget)||200;updateRing();renderInsurancePlan();if(d.weightMissing && !d.weightPendingReview)openWeightModal();}catch(e){document.getElementById('insulinPlanNotice').textContent='ไม่สามารถโหลดแผนการรักษาได้: '+e.message}}
 function switchTab(id,btn){document.querySelectorAll('.tab-panel').forEach(p=>p.hidden=true);document.getElementById('panel-'+id).hidden=false;document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');if(id==='history'&&!historyLoaded){historyLoaded=true;loadHistory()}}
