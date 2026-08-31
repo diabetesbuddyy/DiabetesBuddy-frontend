@@ -268,9 +268,8 @@ function renderInsurancePlan(){
 async function calcInsulin(){const err=document.getElementById('insulinError');if(!settings || !settings.canCalculate){err.textContent='ยังไม่มีแผนอินซูลินที่แพทย์อนุมัติและเผยแพร่ให้ใช้งาน';err.style.display='block';return}err.style.display='none';const meal=document.getElementById('insulinMeal').value,current=Number(document.getElementById('currentBgInput').value)||0,carbs=Number(document.getElementById('mealCarbInput').value)||0;if(current<=0&&carbs<=0){err.textContent='กรอกน้ำตาลปัจจุบันหรือคาร์บมื้อนี้อย่างน้อย 1 ค่า';err.style.display='block';return}try{const d=await api({type:'insulin',idToken:myIdToken,displayName:profile.displayName,meal,current,carbs,clientEntryId:crypto.randomUUID()});if(!d.ok){err.textContent=d.error||'คำนวณไม่สำเร็จ';err.style.display='block';return}const b=document.getElementById('insulinResult');b.style.display='block';b.className='result-box neutral';b.innerHTML=`<div class="result-title">ผลตามแผนการรักษา</div><div class="result-total">${d.totalDose} หน่วย</div><div class="result-breakdown">ส่วนมื้ออาหาร ${Number(d.mealDose).toFixed(1)} + ส่วนแก้ไข ${Number(d.correctionDose).toFixed(1)}</div><div class="result-footnote">Basal ที่แพทย์กำหนด ${d.basalPrescribed||'ยังไม่ได้กำหนด'}</div><div class="result-footnote">ระบบคำนวณตามแผนที่แพทย์กำหนด ไม่ได้เป็นผู้กำหนดแผนการรักษา</div>`}catch(e){err.textContent='เชื่อมต่อ backend ไม่สำเร็จ';err.style.display='block'}}
 function openWeightModal(){document.getElementById('weightModal').classList.add('show');setTimeout(()=>document.getElementById('weightInput').focus(),50)}function closeWeightModal(){document.getElementById('weightModal').classList.remove('show')}
 async function saveMyWeight(){const v=Number(document.getElementById('weightInput').value);const e=document.getElementById('weightError');if(!v||v<=0||v>500){e.textContent='กรอกน้ำหนักที่ถูกต้อง';e.style.display='block';return}e.style.display='none';try{const d=await api({type:'updateMyWeight',idToken:myIdToken,weightKg:v,source:'PATIENT'});if(!d.ok)throw Error(d.error);closeWeightModal();document.getElementById('weightPendingStrip').style.display='block';await fetchMySettings()}catch(err){e.textContent=err.message||'บันทึกไม่สำเร็จ';e.style.display='block'}}
-
 /* =========================================================
-   วิเคราะห์ค่าน้ำตาลและสร้างผลลัพธ์แบบอธิบายเหตุผล
+   วิเคราะห์ค่าน้ำตาลและสร้างผลลัพธ์
    ========================================================= */
 async function analyzeGlucose() {
 
@@ -279,8 +278,7 @@ async function analyzeGlucose() {
       document.getElementById('glucoseInput').value
     );
 
-  const timing =
-    selectedTiming;
+  const timing = selectedTiming;
 
   const errorBox =
     document.getElementById('glucoseError');
@@ -288,9 +286,7 @@ async function analyzeGlucose() {
   const resultBox =
     document.getElementById('glucoseResult');
 
-  /* -------------------------
-     ตรวจข้อมูลก่อนส่ง
-     ------------------------- */
+  /* ตรวจว่ากรอกค่าน้ำตาลหรือยัง */
   if (!value || value <= 0) {
 
     errorBox.textContent =
@@ -305,9 +301,7 @@ async function analyzeGlucose() {
   errorBox.style.display =
     'none';
 
-  /* -------------------------
-     แสดงสถานะกำลังวิเคราะห์
-     ------------------------- */
+  /* แสดงสถานะกำลังวิเคราะห์ */
   resultBox.style.display =
     'block';
 
@@ -322,9 +316,7 @@ async function analyzeGlucose() {
 
   try {
 
-    /* -------------------------
-       ส่งข้อมูลให้ Backend
-       ------------------------- */
+    /* ส่งข้อมูลไป Backend */
     const d = await api({
 
       type: 'glucose',
@@ -344,14 +336,13 @@ async function analyzeGlucose() {
     });
 
     if (!d.ok) {
-      throw new Error(
-        d.error || 'วิเคราะห์ไม่สำเร็จ'
-      );
-    }
 
-    /* -------------------------
-       ดึงค่าที่ใช้แสดงผล
-       ------------------------- */
+      throw new Error(
+        d.error ||
+        'วิเคราะห์ไม่สำเร็จ'
+      );
+
+    }
 
     const level =
       d.level;
@@ -399,44 +390,38 @@ async function analyzeGlucose() {
         'danger';
     }
 
-    /* -------------------------
-       หาเกณฑ์ของช่วงเวลา
-       ------------------------- */
-
+    /* ใช้ settings ตัวจริงของระบบ */
     const clinical =
-  settings || {};
+      settings || {};
 
-const low =
-  Number(
-    clinical.lowThreshold
-  ) || 70;
+    const low =
+      Number(
+        clinical.lowThreshold
+      ) || 70;
 
-const veryHigh =
-  Number(
-    clinical.veryHighThreshold
-  ) || 250;
+    const veryHigh =
+      Number(
+        clinical.veryHighThreshold
+      ) || 250;
 
-let upper;
+    let upper;
 
-if (timing === 'fasting') {
+    if (timing === 'fasting') {
 
-  upper =
-    Number(
-      clinical.fastingUpper
-    ) || 130;
+      upper =
+        Number(
+          clinical.fastingUpper
+        ) || 130;
 
-} else {
+    } else {
 
-  upper =
-    Number(
-      clinical.postmealUpper
-    ) || 180;
-}
+      upper =
+        Number(
+          clinical.postmealUpper
+        ) || 180;
+    }
 
-    /* -------------------------
-       สร้างคำอธิบาย
-       ------------------------- */
-
+    /* สร้างคำอธิบาย */
     const explanation =
       buildGlucoseExplanation(
         value,
@@ -452,19 +437,21 @@ if (timing === 'fasting') {
             veryHigh
         }
       );
+
+    /* สร้างคำแนะนำกรณีน้ำตาลต่ำ */
     const hypoglycemiaAdvice =
       buildHypoglycemiaAdvice(value);
-    /* -------------------------
-       แสดงผลใหม่
-       ------------------------- */
 
+    /* แสดงผล */
     resultBox.className =
       `result-box ${resultClass}`;
 
     resultBox.innerHTML = `
-    
-      <div class="result-title"
-           style="font-size:22px">
+
+      <div
+        class="result-title"
+        style="font-size:22px"
+      >
         ${icon} ${title}
       </div>
 
@@ -474,7 +461,8 @@ if (timing === 'fasting') {
           display:grid;
           gap:10px;
           text-align:left;
-        ">
+        "
+      >
 
         <div class="plan-row">
 
@@ -507,11 +495,7 @@ if (timing === 'fasting') {
           </span>
 
           <strong>
-            ${
-              timing === 'fasting'
-              ? upper
-              : upper
-            } mg/dL
+            ${upper} mg/dL
           </strong>
 
         </div>
@@ -550,16 +534,19 @@ if (timing === 'fasting') {
 
       </div>
 
-      <div class="result-message"
-           style="margin-top:14px">
+      <div
+        class="result-message"
+        style="margin-top:14px"
+      >
         ${d.message}
       </div>
-      
+
       ${hypoglycemiaAdvice}
 
       <div class="result-footnote">
         ระบบบันทึกและแปลผลจากค่าที่ส่งไปยัง Backend
       </div>
+
     `;
 
   } catch (e) {
@@ -581,10 +568,10 @@ if (timing === 'fasting') {
   }
 }
 /* =========================================================
-   แปลงค่าช่วงเวลาที่ Backend ใช้
-   ให้เป็นข้อความที่ผู้ใช้เข้าใจง่าย
+   แปลงชื่อช่วงเวลาสำหรับแสดงให้ผู้ใช้
    ========================================================= */
 function getTimingLabel(timing) {
+
   if (timing === 'fasting') {
     return 'เช้า / ก่อนอาหาร';
   }
@@ -600,24 +587,71 @@ function getTimingLabel(timing) {
   return timing || 'ไม่ระบุ';
 }
 /* =========================================================
-   สร้างคำอธิบายว่าทำไมค่าจึงถูกจัดอยู่ในระดับนั้น
+   สร้างคำอธิบายเหตุผลของผลตรวจ
    ========================================================= */
-function buildGlucoseExplanation(value, timing, level, settings) {
+function buildGlucoseExplanation(
+  value,
+  timing,
+  level,
+  settings
+) {
 
-  const low = Number(settings?.lowThreshold) || 70;
+  const low =
+    Number(
+      settings?.lowThreshold
+    ) || 70;
 
   let upper;
 
   if (timing === 'fasting') {
+
     upper =
-      Number(settings?.fastingUpper) || 130;
+      Number(
+        settings?.fastingUpper
+      ) || 130;
+
   } else {
+
     upper =
-      Number(settings?.postmealUpper) || 180;
+      Number(
+        settings?.postmealUpper
+      ) || 180;
   }
+
+  if (level === 'low') {
+
+    return `
+      ค่าของคุณต่ำกว่าเกณฑ์น้ำตาลต่ำ
+      ${low} mg/dL
+    `;
+
+  }
+
+  if (level === 'very-high') {
+
+    return `
+      ค่าของคุณสูงกว่าเกณฑ์ที่กำหนดไว้มาก
+    `;
+
+  }
+
+  if (level === 'high') {
+
+    return `
+      ค่าของคุณสูงกว่าเกณฑ์ของช่วง
+      ${getTimingLabel(timing)}
+      ซึ่งกำหนดไว้ที่ ${upper} mg/dL
+    `;
+
+  }
+
+  return `
+    ค่าของคุณอยู่ในช่วงที่ระบบกำหนดสำหรับ
+    ${getTimingLabel(timing)}
+  `;
+}
 /* =========================================================
-   สร้างคำแนะนำเบื้องต้นเมื่อระดับน้ำตาลต่ำกว่า 70 mg/dL
-   แสดงเฉพาะผลที่เป็น low เท่านั้น
+   คำแนะนำเบื้องต้นเมื่อระดับน้ำตาลต่ำกว่า 70 mg/dL
    ========================================================= */
 function buildHypoglycemiaAdvice(value) {
 
@@ -660,8 +694,12 @@ function buildHypoglycemiaAdvice(value) {
         กฎ 15-15
       </div>
 
-      <div style="font-size:15px;line-height:1.75">
-
+      <div
+        style="
+          font-size:15px;
+          line-height:1.75;
+        "
+      >
         หากยังรู้สึกตัวและสามารถรับประทานได้
         ให้รับคาร์โบไฮเดรตที่ออกฤทธิ์เร็วประมาณ
         <strong>15 กรัม</strong>
@@ -673,7 +711,6 @@ function buildHypoglycemiaAdvice(value) {
         หากระดับน้ำตาลยังต่ำกว่า
         <strong>70 mg/dL</strong>
         ให้ทำซ้ำตามคำแนะนำของทีมดูแล
-
       </div>
 
       <div
@@ -686,8 +723,7 @@ function buildHypoglycemiaAdvice(value) {
           line-height:1.7;
         "
       >
-        🚨
-        หากหมดสติ ชัก สับสนมาก
+        🚨 หากหมดสติ ชัก สับสนมาก
         หรือไม่สามารถกลืนได้
         <strong>
           อย่าให้อาหารหรือน้ำทางปาก
@@ -704,7 +740,8 @@ function buildHypoglycemiaAdvice(value) {
         "
       >
         คำแนะนำนี้เป็นข้อมูลเบื้องต้น
-        ควรปฏิบัติตามแผนและคำแนะนำของทีมแพทย์ที่ดูแลคุณ
+        ควรปฏิบัติตามแผนและคำแนะนำ
+        ของทีมแพทย์ที่ดูแลคุณ
       </div>
 
     </div>
