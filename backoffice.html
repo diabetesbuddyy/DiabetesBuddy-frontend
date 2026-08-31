@@ -34,7 +34,7 @@
     <div class="tabs"><button class="tab active" data-admin-tab="requests" onclick="switchAdminTab('requests',this)">📥 คำขอ</button><button class="tab" data-admin-tab="users" onclick="switchAdminTab('users',this)">👥 ผู้ใช้</button><button class="tab" data-admin-tab="assign" onclick="switchAdminTab('assign',this)">🔗 มอบหมายผู้ดูแล</button><button class="tab" data-admin-tab="audit" onclick="switchAdminTab('audit',this)">🧾 Audit</button></div>
     <section id="adminRequestsTab"><div class="grid"><section class="card half"><div class="toolbar" style="justify-content:space-between"><div><h2 class="section-title">📥 คำขอสิทธิ์ทีมดูแล</h2><p class="sub">ตรวจสอบและตัดสินใจคำขอ</p></div><button class="btn secondary" onclick="loadAdminRequests()">รีเฟรช</button></div><div class="toolbar"><button class="btn secondary" onclick="loadAdminRequests('')">ทั้งหมด</button><button class="btn secondary" onclick="loadAdminRequests('PENDING')">รอดำเนินการ</button></div><div id="requestList" class="request-list"></div></section><section class="card half"><h2 class="section-title">➕ เพิ่มบุคลากรโดย Admin</h2><p class="sub">เพิ่มหรือคืนสิทธิ์ให้ Doctor/Nurse โดยตรง</p><div class="field"><label class="label">LINE User ID *</label><input id="staffUserId"></div><div class="field"><label class="label">ชื่อ *</label><input id="staffName"></div><div class="field"><label class="label">บทบาท *</label><select id="staffRole"><option value="DOCTOR">DOCTOR</option><option value="NURSE">NURSE</option></select></div><div class="field"><label class="label">เหตุผล *</label><textarea id="staffReason"></textarea></div><button class="btn primary" onclick="createStaffUser()">บันทึกบุคลากร</button><div id="createStaffStatus" class="note" style="margin-top:8px"></div></section></div></section>
     <section id="adminUsersTab" class="hidden"><div class="card"><div class="toolbar" style="justify-content:space-between"><div><h2 class="section-title">👥 ผู้ใช้งานทีมดูแล</h2><p class="sub">จัดการสถานะบัญชี Doctor/Nurse/Admin</p></div><button class="btn secondary" onclick="loadAdminUsers()">รีเฟรช</button></div><div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>ชื่อ</th><th>LINE User ID</th><th>Role</th><th>สถานะ</th><th>การจัดการ</th></tr></thead><tbody id="userTableBody"></tbody></table></div></div></section>
-    <section id="adminAssignTab" class="hidden"><div class="grid"><section class="card half"><h2 class="section-title">🔗 มอบหมายผู้ดูแล</h2><p class="sub">เลือกผู้ป่วยและกำหนด Doctor/Nurse ที่รับผิดชอบ</p><div class="field"><label class="label">ผู้ป่วย *</label><select id="assignPatient"></select></div><div class="field"><label class="label">แพทย์</label><select id="assignDoctor"></select></div><div class="field"><label class="label">พยาบาล</label><select id="assignNurse"></select></div><div class="field"><label class="label">เหตุผล *</label><textarea id="assignReason" placeholder="ระบุเหตุผลในการกำหนด/เปลี่ยนผู้ดูแล"></textarea></div><button class="btn primary" onclick="saveAssignment()">บันทึกการมอบหมาย</button><div id="assignStatus" class="note" style="margin-top:8px"></div></section><section class="card half"><h2 class="section-title">📌 การมอบหมายปัจจุบัน</h2><p class="sub">ข้อมูลจากผู้ป่วยในระบบ</p><div id="assignmentPreview" class="patient-list"></div></section></div></section>
+    <section id="adminAssignTab" class="hidden"><div class="grid"><section class="card half"><h2 class="section-title">🔗 มอบหมายผู้ดูแล</h2><p class="sub">เลือกผู้ป่วยและกำหนด Doctor/Nurse ที่รับผิดชอบ</p><div class="field"><label class="label">ผู้ป่วย *</label><select id="assignPatient"></select></div><div class="field"><label class="label">แพทย์</label><select id="assignDoctor"></select></div><div class="field"><label class="label">พยาบาล</label><select id="assignNurse"></select></div><div class="field"><label class="label">เหตุผล *</label><textarea id="assignReason" placeholder="ระบุเหตุผลในการกำหนด/เปลี่ยนผู้ดูแล"></textarea></div><button class="btn primary"id="saveAssignmentBtn"type="button"onclick="saveAssignment()">บันทึกการมอบหมาย</button><div id="assignStatus" class="note" style="margin-top:8px"></div></section><section class="card half"><h2 class="section-title">📌 การมอบหมายปัจจุบัน</h2><p class="sub">ข้อมูลจากผู้ป่วยในระบบ</p><div id="assignmentPreview" class="patient-list"></div></section></div></section>
     <section id="adminAuditTab" class="hidden"><div class="card"><div class="toolbar" style="justify-content:space-between"><div><h2 class="section-title">🧾 Audit Log</h2><p class="sub">ตรวจสอบการกระทำสำคัญย้อนหลัง</p></div><button class="btn secondary" onclick="loadAuditLogs()">รีเฟรช</button></div><div class="subgrid"><div class="field"><label class="label">Action</label><input id="auditAction" placeholder="เช่น APPROVE_STAFF_ACCESS_REQUEST"></div><div class="field"><label class="label">Role</label><select id="auditActorRole"><option value="">ทั้งหมด</option><option>ADMIN</option><option>DOCTOR</option><option>NURSE</option><option>PATIENT</option></select></div></div><button class="btn secondary" onclick="loadAuditLogs()">ค้นหา</button><div id="auditList" class="audit-list" style="margin-top:12px"></div></div></section>
   </div>
 </div>
@@ -704,7 +704,167 @@ let assignData={};
 async function loadAssignmentData(){try{const d=careData||await api({type:'nurseData',idToken:myIdToken});careData=d;const pts=d.patients||[];const team=d.careTeam||[];const doctors=team.filter(x=>x.role==='DOCTOR'),nurses=team.filter(x=>x.role==='NURSE');document.getElementById('assignPatient').innerHTML=pts.map(p=>`<option value="${esc(p.userId)}">${esc(p.name||p.userId)}</option>`).join('');document.getElementById('assignDoctor').innerHTML='<option value="">— ไม่กำหนด —</option>'+doctors.map(x=>`<option value="${esc(x.userId)}">${esc(x.name)} (${esc(x.userId)})</option>`).join('');document.getElementById('assignNurse').innerHTML='<option value="">— ไม่กำหนด —</option>'+nurses.map(x=>`<option value="${esc(x.userId)}">${esc(x.name)} (${esc(x.userId)})</option>`).join('');renderAssignmentPreview(pts);document.getElementById('assignPatient').onchange=()=>renderSelectedAssignment(pts)}catch(e){setAlert(e.message||'โหลดข้อมูลมอบหมายไม่สำเร็จ','bad')}}
 function renderAssignmentPreview(pts){document.getElementById('assignmentPreview').innerHTML=pts.length?pts.slice(0,30).map(p=>`<div class="patient-card"><div class="patient-name">${esc(p.name||p.userId)}</div><div class="muted">Doctor: ${esc(p.doctorId||'—')}<br>Nurse: ${esc(p.nurseId||'—')}</div></div>`).join(''):'<div class="empty">ยังไม่มีผู้ป่วย</div>'}
 function renderSelectedAssignment(pts){const p=pts.find(x=>x.userId===document.getElementById('assignPatient').value);if(!p)return;document.getElementById('assignDoctor').value=p.doctorId||'';document.getElementById('assignNurse').value=p.nurseId||''}
-async function saveAssignment(){const patientId=document.getElementById('assignPatient').value,doctorId=document.getElementById('assignDoctor').value,nurseId=document.getElementById('assignNurse').value,reason=document.getElementById('assignReason').value.trim();if(!patientId||reason.length<3){alert('กรุณาเลือกผู้ป่วยและระบุเหตุผลอย่างน้อย 3 ตัวอักษร');return}const out=document.getElementById('assignStatus');try{await api({type:'updatePatientAssignment',idToken:myIdToken,patientId,doctorId,nurseId,reason});out.textContent='บันทึกการมอบหมายแล้ว';const d=await api({type:'nurseData',idToken:myIdToken});careData=d;renderAssignmentPreview(d.patients||[]);renderSelectedAssignment(d.patients||[]);setAlert('บันทึกการมอบหมายผู้ดูแลแล้ว','good')}catch(e){out.textContent=e.message||'บันทึกไม่สำเร็จ'}}
+async function saveAssignment() {
+
+  const patientId =
+    document.getElementById('assignPatient').value;
+
+  const doctorId =
+    document.getElementById('assignDoctor').value;
+
+  const nurseId =
+    document.getElementById('assignNurse').value;
+
+  const reason =
+    document.getElementById('assignReason').value.trim();
+
+  const btn =
+    document.getElementById('saveAssignmentBtn');
+
+  const out =
+    document.getElementById('assignStatus');
+
+  /* ตรวจข้อมูลก่อนส่ง */
+  if (!patientId || reason.length < 3) {
+
+    alert(
+      'กรุณาเลือกผู้ป่วยและระบุเหตุผลอย่างน้อย 3 ตัวอักษร'
+    );
+
+    return;
+  }
+
+  /* ---------------------------------------------------------
+     ป้องกันการกดซ้ำ
+     --------------------------------------------------------- */
+  if (btn?.disabled) {
+    return;
+  }
+
+  /* ล็อกปุ่มทันที */
+  if (btn) {
+
+    btn.disabled = true;
+
+    btn.textContent =
+      '⏳ กำลังบันทึก...';
+
+    btn.setAttribute(
+      'aria-busy',
+      'true'
+    );
+  }
+
+  /* แสดงสถานะ */
+  if (out) {
+
+    out.textContent =
+      'กำลังบันทึกการมอบหมาย...';
+
+  }
+
+  try {
+
+    /* -------------------------------------------------------
+       บันทึกการมอบหมาย
+       ------------------------------------------------------- */
+    await api({
+
+      type:
+        'updatePatientAssignment',
+
+      idToken:
+        myIdToken,
+
+      patientId:
+        patientId,
+
+      doctorId:
+        doctorId,
+
+      nurseId:
+        nurseId,
+
+      reason:
+        reason
+
+    });
+
+    /* -------------------------------------------------------
+       โหลดข้อมูลใหม่หลังบันทึกสำเร็จ
+       ------------------------------------------------------- */
+    if (out) {
+
+      out.textContent =
+        'บันทึกการมอบหมายแล้ว';
+
+    }
+
+    const d =
+      await api({
+
+        type:
+          'nurseData',
+
+        idToken:
+          myIdToken
+
+      });
+
+    careData =
+      d;
+
+    renderAssignmentPreview(
+      d.patients || []
+    );
+
+    renderSelectedAssignment(
+      d.patients || []
+    );
+
+    setAlert(
+      'บันทึกการมอบหมายผู้ดูแลแล้ว',
+      'good'
+    );
+
+  } catch (e) {
+
+    if (out) {
+
+      out.textContent =
+        e.message ||
+        'บันทึกไม่สำเร็จ';
+
+    }
+
+    setAlert(
+      e.message ||
+      'บันทึกการมอบหมายไม่สำเร็จ',
+      'bad'
+    );
+
+  } finally {
+
+    /* -------------------------------------------------------
+       ไม่ว่าจะสำเร็จหรือล้มเหลว
+       ต้องปลดล็อกปุ่มกลับมา
+       ------------------------------------------------------- */
+    if (btn) {
+
+      btn.disabled =
+        false;
+
+      btn.textContent =
+        'บันทึกการมอบหมาย';
+
+      btn.removeAttribute(
+        'aria-busy'
+      );
+
+    }
+
+  }
+}
 async function loadAuditLogs(){try{const d=await api({type:'adminGetAuditLogs',idToken:myIdToken,action:document.getElementById('auditAction').value.trim(),actorRole:document.getElementById('auditActorRole').value,limit:150});document.getElementById('auditList').innerHTML=d.logs?.length?d.logs.map(x=>`<div class="audit-card"><div class="request-head"><b>${esc(x.action)}</b><span class="muted">${fmt(x.time)}</span></div><div class="note" style="margin-top:7px">ผู้กระทำ: ${esc(x.actorId)} (${esc(x.actorRole)})<br>ผู้ป่วย: ${esc(x.patientId||'—')}<br>Field: ${esc(x.field||'—')}<br>จาก: ${esc(x.oldValue||'—')}<br>เป็น: ${esc(x.newValue||'—')}<br>เหตุผล: ${esc(x.reason||'—')}</div></div>`).join(''):'<div class="empty">ไม่พบ Audit Log</div>'}catch(e){setAlert(e.message||'โหลด Audit Log ไม่สำเร็จ','bad')}}
 window.addEventListener('DOMContentLoaded',init);async function refreshAllData() {const btn = document.getElementById('refreshAllBtn');if (btn) {btn.disabled = true;btn.textContent = '⏳ กำลังรีเฟรช...';}try {if (!myIdToken) {throw new Error('ยังไม่มีข้อมูลยืนยันตัวตน');}if (currentRole === 'ADMIN') {await Promise.all([loadAdminRequests('PENDING'),loadAdminUsers(),loadAssignmentData()]);setAlert('รีเฟรชข้อมูล Admin แล้ว', 'good');} else if (currentRole === 'DOCTOR' ||currentRole === 'NURSE') {await loadCareView();setAlert('รีเฟรชข้อมูลผู้ป่วยแล้ว', 'good');} else {await init();}} catch (e) {setAlert(e.message || 'รีเฟรชข้อมูลไม่สำเร็จ','bad');} finally {if (btn) {btn.disabled = false;btn.textContent = '🔄 รีเฟรชข้อมูล';}}}
 </script>
