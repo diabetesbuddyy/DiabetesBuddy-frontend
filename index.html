@@ -150,7 +150,7 @@ const PROJECT_DATA_USE_END='24 พฤศจิกายน 2569';
 const PROJECT_END_DATE='24 กุมภาพันธ์ 2570';
 const GAS_WEB_APP_URL='https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpclxW8jOqIqbLbUrSiftt4hzyxr5dtvhKjIAyL-vx74AgO_UP-zEk4/exec';
 const FOOD_DB=[{name:'ข้าวสวย (1 ทัพพี)',carbs:20},{name:'ข้าวเหนียว (1 ก้อนเล็ก)',carbs:23},{name:'ขนมปังแผ่น (1 แผ่น)',carbs:13},{name:'ก๋วยเตี๋ยว (1 ชาม)',carbs:45},{name:'กล้วยน้ำว้า (1 ผล)',carbs:25},{name:'ส้ม (1 ผลกลาง)',carbs:15},{name:'นมจืด (1 แก้ว)',carbs:12},{name:'ผัดไทย (1 จาน)',carbs:55}];
-let profile={userId:null,displayName:'ผู้ป่วย'};let myIdToken=null;let todayLog=[];let carbLogDate='';const CARB_STORAGE_PREFIX='diabetesBuddy.carbLog.v2';const CARB_MODE_STORAGE_PREFIX='diabetesBuddy.carbMode.v1';let carbSyncMode='auto';let retryTimer=null;let cancelTargetIndex=null;let selectedMeal='เช้า';let selectedTiming='fasting';let dailyTarget=200;let settings=null;let historyData=null;let historyLoaded=false;
+let profile={userId:null,displayName:'ผู้ป่วย'};let myIdToken=null;let todayLog=[];let carbLogDate='';const CARB_STORAGE_PREFIX='diabetesBuddy.carbLog.v2';const CARB_MODE_STORAGE_PREFIX='diabetesBuddy.carbMode.v1';let carbSyncMode='auto';let retryTimer=null;let cancelTargetIndex=null;let selectedMeal='เช้า';lectedTiming='fasting';let dailyTarget=200;let historyData=null;let historyLoaded=false;
 const THAI_DAYS=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];const THAI_MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 function renderThaiDate(){const d=new Date();document.getElementById('headerDate').textContent=`วัน${THAI_DAYS[d.getDay()]}ที่ ${d.getDate()} ${THAI_MONTHS[d.getMonth()]}`}
 function getBangkokDateKey(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}
@@ -268,7 +268,499 @@ function renderInsurancePlan(){
 async function calcInsulin(){const err=document.getElementById('insulinError');if(!settings || !settings.canCalculate){err.textContent='ยังไม่มีแผนอินซูลินที่แพทย์อนุมัติและเผยแพร่ให้ใช้งาน';err.style.display='block';return}err.style.display='none';const meal=document.getElementById('insulinMeal').value,current=Number(document.getElementById('currentBgInput').value)||0,carbs=Number(document.getElementById('mealCarbInput').value)||0;if(current<=0&&carbs<=0){err.textContent='กรอกน้ำตาลปัจจุบันหรือคาร์บมื้อนี้อย่างน้อย 1 ค่า';err.style.display='block';return}try{const d=await api({type:'insulin',idToken:myIdToken,displayName:profile.displayName,meal,current,carbs,clientEntryId:crypto.randomUUID()});if(!d.ok){err.textContent=d.error||'คำนวณไม่สำเร็จ';err.style.display='block';return}const b=document.getElementById('insulinResult');b.style.display='block';b.className='result-box neutral';b.innerHTML=`<div class="result-title">ผลตามแผนการรักษา</div><div class="result-total">${d.totalDose} หน่วย</div><div class="result-breakdown">ส่วนมื้ออาหาร ${Number(d.mealDose).toFixed(1)} + ส่วนแก้ไข ${Number(d.correctionDose).toFixed(1)}</div><div class="result-footnote">Basal ที่แพทย์กำหนด ${d.basalPrescribed||'ยังไม่ได้กำหนด'}</div><div class="result-footnote">ระบบคำนวณตามแผนที่แพทย์กำหนด ไม่ได้เป็นผู้กำหนดแผนการรักษา</div>`}catch(e){err.textContent='เชื่อมต่อ backend ไม่สำเร็จ';err.style.display='block'}}
 function openWeightModal(){document.getElementById('weightModal').classList.add('show');setTimeout(()=>document.getElementById('weightInput').focus(),50)}function closeWeightModal(){document.getElementById('weightModal').classList.remove('show')}
 async function saveMyWeight(){const v=Number(document.getElementById('weightInput').value);const e=document.getElementById('weightError');if(!v||v<=0||v>500){e.textContent='กรอกน้ำหนักที่ถูกต้อง';e.style.display='block';return}e.style.display='none';try{const d=await api({type:'updateMyWeight',idToken:myIdToken,weightKg:v,source:'PATIENT'});if(!d.ok)throw Error(d.error);closeWeightModal();document.getElementById('weightPendingStrip').style.display='block';await fetchMySettings()}catch(err){e.textContent=err.message||'บันทึกไม่สำเร็จ';e.style.display='block'}}
-async function analyzeGlucose(){const value=Number(document.getElementById('glucoseInput').value);if(!value||value<=0){document.getElementById('glucoseError').textContent='กรอกค่าน้ำตาลก่อน';document.getElementById('glucoseError').style.display='block';return}document.getElementById('glucoseError').style.display='none';const box=document.getElementById('glucoseResult');box.style.display='block';box.className='result-box neutral';box.innerHTML='<div class="result-title">กำลังวิเคราะห์…</div>';try{const d=await api({type:'glucose',idToken:myIdToken,displayName:profile.displayName,value,timing:selectedTiming,clientEntryId:crypto.randomUUID()});if(!d.ok)throw Error(d.error);const cls=d.level==='low'||d.level==='very-high'?'danger':d.level==='high'?'warn':'good';box.className='result-box '+cls;box.innerHTML=`<div class="result-title">${d.level==='low'?'น้ำตาลต่ำ':d.level==='very-high'?'สูงมาก':d.level==='high'?'สูงกว่าเกณฑ์':'อยู่ในเกณฑ์'}</div><div class="result-message">${d.message}</div><div class="result-footnote">ระบบบันทึกและแปลผลจากค่าที่ส่งไปยัง backend</div>`}catch(e){box.className='result-box danger';box.innerHTML=`<div class="result-title">โหลดไม่สำเร็จ</div><div class="result-message">${e.message}</div>`}}
+
+/* =========================================================
+   วิเคราะห์ค่าน้ำตาลและสร้างผลลัพธ์แบบอธิบายเหตุผล
+   ========================================================= */
+async function analyzeGlucose() {
+
+  const value =
+    Number(
+      document.getElementById('glucoseInput').value
+    );
+
+  const timing =
+    selectedTiming;
+
+  const errorBox =
+    document.getElementById('glucoseError');
+
+  const resultBox =
+    document.getElementById('glucoseResult');
+
+  /* -------------------------
+     ตรวจข้อมูลก่อนส่ง
+     ------------------------- */
+  if (!value || value <= 0) {
+
+    errorBox.textContent =
+      'กรอกค่าน้ำตาลก่อน';
+
+    errorBox.style.display =
+      'block';
+
+    return;
+  }
+
+  errorBox.style.display =
+    'none';
+
+  /* -------------------------
+     แสดงสถานะกำลังวิเคราะห์
+     ------------------------- */
+  resultBox.style.display =
+    'block';
+
+  resultBox.className =
+    'result-box neutral';
+
+  resultBox.innerHTML = `
+    <div class="result-title">
+      กำลังวิเคราะห์…
+    </div>
+  `;
+
+  try {
+
+    /* -------------------------
+       ส่งข้อมูลให้ Backend
+       ------------------------- */
+    const d = await api({
+
+      type: 'glucose',
+
+      idToken: myIdToken,
+
+      displayName:
+        profile.displayName,
+
+      value,
+
+      timing,
+
+      clientEntryId:
+        crypto.randomUUID()
+
+    });
+
+    if (!d.ok) {
+      throw new Error(
+        d.error || 'วิเคราะห์ไม่สำเร็จ'
+      );
+    }
+
+    /* -------------------------
+       ดึงค่าที่ใช้แสดงผล
+       ------------------------- */
+
+    const level =
+      d.level;
+
+    let title =
+      'อยู่ในเกณฑ์';
+
+    let icon =
+      '🟢';
+
+    let resultClass =
+      'good';
+
+    if (level === 'low') {
+
+      title =
+        'น้ำตาลต่ำ';
+
+      icon =
+        '🔴';
+
+      resultClass =
+        'danger';
+
+    } else if (level === 'high') {
+
+      title =
+        'สูงกว่าเกณฑ์';
+
+      icon =
+        '🟠';
+
+      resultClass =
+        'warn';
+
+    } else if (level === 'very-high') {
+
+      title =
+        'สูงมาก';
+
+      icon =
+        '🔴';
+
+      resultClass =
+        'danger';
+    }
+
+    /* -------------------------
+       หาเกณฑ์ของช่วงเวลา
+       ------------------------- */
+
+    const clinical =
+  settings || {};
+
+const low =
+  Number(
+    clinical.lowThreshold
+  ) || 70;
+
+const veryHigh =
+  Number(
+    clinical.veryHighThreshold
+  ) || 250;
+
+let upper;
+
+if (timing === 'fasting') {
+
+  upper =
+    Number(
+      clinical.fastingUpper
+    ) || 130;
+
+} else {
+
+  upper =
+    Number(
+      clinical.postmealUpper
+    ) || 180;
+}
+
+    /* -------------------------
+       สร้างคำอธิบาย
+       ------------------------- */
+
+    const explanation =
+      buildGlucoseExplanation(
+        value,
+        timing,
+        level,
+        {
+          lowThreshold: low,
+          fastingUpper:
+            clinical.fastingUpper,
+          postmealUpper:
+            clinical.postmealUpper,
+          veryHighThreshold:
+            veryHigh
+        }
+      );
+    const hypoglycemiaAdvice =
+      buildHypoglycemiaAdvice(value);
+    /* -------------------------
+       แสดงผลใหม่
+       ------------------------- */
+
+    resultBox.className =
+      `result-box ${resultClass}`;
+
+    resultBox.innerHTML = `
+    
+      <div class="result-title"
+           style="font-size:22px">
+        ${icon} ${title}
+      </div>
+
+      <div
+        style="
+          margin-top:16px;
+          display:grid;
+          gap:10px;
+          text-align:left;
+        ">
+
+        <div class="plan-row">
+
+          <span>
+            ค่าน้ำตาล
+          </span>
+
+          <strong>
+            ${value} mg/dL
+          </strong>
+
+        </div>
+
+        <div class="plan-row">
+
+          <span>
+            ช่วงเวลาที่ตรวจ
+          </span>
+
+          <strong>
+            ${getTimingLabel(timing)}
+          </strong>
+
+        </div>
+
+        <div class="plan-row">
+
+          <span>
+            เกณฑ์ของช่วงนี้
+          </span>
+
+          <strong>
+            ${
+              timing === 'fasting'
+              ? upper
+              : upper
+            } mg/dL
+          </strong>
+
+        </div>
+
+      </div>
+
+      <div
+        style="
+          margin-top:16px;
+          padding:14px;
+          border-radius:12px;
+          background:rgba(61,107,92,.08);
+          text-align:left;
+        "
+      >
+
+        <div
+          style="
+            font-family:'Kanit';
+            font-size:16px;
+            color:var(--brand);
+            margin-bottom:5px;
+          "
+        >
+          ทำไมระบบจึงแปลผลแบบนี้?
+        </div>
+
+        <div
+          style="
+            font-size:15px;
+            line-height:1.7;
+          "
+        >
+          ${explanation}
+        </div>
+
+      </div>
+
+      <div class="result-message"
+           style="margin-top:14px">
+        ${d.message}
+      </div>
+      
+      ${hypoglycemiaAdvice}
+
+      <div class="result-footnote">
+        ระบบบันทึกและแปลผลจากค่าที่ส่งไปยัง Backend
+      </div>
+    `;
+
+  } catch (e) {
+
+    resultBox.className =
+      'result-box danger';
+
+    resultBox.innerHTML = `
+
+      <div class="result-title">
+        โหลดไม่สำเร็จ
+      </div>
+
+      <div class="result-message">
+        ${esc(e.message)}
+      </div>
+
+    `;
+  }
+}
+/* =========================================================
+   แปลงค่าช่วงเวลาที่ Backend ใช้
+   ให้เป็นข้อความที่ผู้ใช้เข้าใจง่าย
+   ========================================================= */
+function getTimingLabel(timing) {
+  if (timing === 'fasting') {
+    return 'เช้า / ก่อนอาหาร';
+  }
+
+  if (timing === 'postmeal') {
+    return 'หลังอาหาร';
+  }
+
+  if (timing === 'emergency') {
+    return 'ฉุกเฉิน / สุ่มตรวจ';
+  }
+
+  return timing || 'ไม่ระบุ';
+}
+/* =========================================================
+   สร้างคำอธิบายว่าทำไมค่าจึงถูกจัดอยู่ในระดับนั้น
+   ========================================================= */
+function buildGlucoseExplanation(value, timing, level, settings) {
+
+  const low = Number(settings?.lowThreshold) || 70;
+
+  let upper;
+
+  if (timing === 'fasting') {
+    upper =
+      Number(settings?.fastingUpper) || 130;
+  } else {
+    upper =
+      Number(settings?.postmealUpper) || 180;
+  }
+/* =========================================================
+   สร้างคำแนะนำเบื้องต้นเมื่อระดับน้ำตาลต่ำกว่า 70 mg/dL
+   แสดงเฉพาะผลที่เป็น low เท่านั้น
+   ========================================================= */
+function buildHypoglycemiaAdvice(value) {
+
+  if (Number(value) >= 70) {
+    return '';
+  }
+
+  return `
+    <div
+      style="
+        margin-top:16px;
+        padding:16px;
+        border-radius:14px;
+        background:var(--over-bg);
+        border:1px solid var(--over);
+        text-align:left;
+      "
+    >
+
+      <div
+        style="
+          font-family:'Kanit',sans-serif;
+          font-size:18px;
+          font-weight:600;
+          color:var(--over);
+          margin-bottom:8px;
+        "
+      >
+        ⚠️ คำแนะนำเบื้องต้นเมื่อมีน้ำตาลต่ำ
+      </div>
+
+      <div
+        style="
+          font-family:'Kanit',sans-serif;
+          font-size:17px;
+          font-weight:600;
+          margin-bottom:8px;
+        "
+      >
+        กฎ 15-15
+      </div>
+
+      <div style="font-size:15px;line-height:1.75">
+
+        หากยังรู้สึกตัวและสามารถรับประทานได้
+        ให้รับคาร์โบไฮเดรตที่ออกฤทธิ์เร็วประมาณ
+        <strong>15 กรัม</strong>
+        แล้วตรวจระดับน้ำตาลซ้ำหลังประมาณ
+        <strong>15 นาที</strong>
+
+        <br><br>
+
+        หากระดับน้ำตาลยังต่ำกว่า
+        <strong>70 mg/dL</strong>
+        ให้ทำซ้ำตามคำแนะนำของทีมดูแล
+
+      </div>
+
+      <div
+        style="
+          margin-top:12px;
+          padding:12px;
+          border-radius:10px;
+          background:rgba(193,90,70,.10);
+          font-size:14px;
+          line-height:1.7;
+        "
+      >
+        🚨
+        หากหมดสติ ชัก สับสนมาก
+        หรือไม่สามารถกลืนได้
+        <strong>
+          อย่าให้อาหารหรือน้ำทางปาก
+        </strong>
+        และให้ขอความช่วยเหลือฉุกเฉินทันที
+      </div>
+
+      <div
+        style="
+          margin-top:10px;
+          font-size:12px;
+          color:var(--ink-soft);
+          line-height:1.6;
+        "
+      >
+        คำแนะนำนี้เป็นข้อมูลเบื้องต้น
+        ควรปฏิบัติตามแผนและคำแนะนำของทีมแพทย์ที่ดูแลคุณ
+      </div>
+
+    </div>
+  `;
+}
+  const timingLabel =
+    getTimingLabel(timing);
+
+  /* -------------------------
+     น้ำตาลต่ำ
+     ------------------------- */
+  if (level === 'low') {
+
+    return `
+      ค่าของคุณต่ำกว่าเกณฑ์น้ำตาลต่ำ
+      ${low} mg/dL
+      อยู่ ${Math.abs(value - low).toFixed(0)} mg/dL
+    `;
+  }
+
+  /* -------------------------
+     น้ำตาลสูงมาก
+     ------------------------- */
+  if (level === 'very-high') {
+
+    return `
+      ค่าของคุณอยู่ที่ ${value} mg/dL
+      ซึ่งถึงหรือสูงกว่าเกณฑ์ที่ระบบกำหนดว่า
+      "สูงมาก" คือ ${Number(settings?.veryHighThreshold) || 250} mg/dL
+    `;
+  }
+
+  /* -------------------------
+     น้ำตาลสูง
+     ------------------------- */
+  if (level === 'high') {
+
+    return `
+      ตรวจในช่วง "${timingLabel}"
+      และค่า ${value} mg/dL
+      สูงกว่าเกณฑ์ของช่วงนี้
+      ${upper} mg/dL
+      อยู่ ${Math.abs(value - upper).toFixed(0)} mg/dL
+    `;
+  }
+
+  /* -------------------------
+     ปกติ
+     ------------------------- */
+  return `
+    ตรวจในช่วง "${timingLabel}"
+    และค่า ${value} mg/dL
+    ยังไม่เกินเกณฑ์ของช่วงนี้
+    ${upper} mg/dL
+  `;
+}
 async function loadHistory(){if(!myIdToken)return;const days=Number(document.getElementById('historyDays').value)||14;try{const d=await api({type:'myHistory',idToken:myIdToken,days});if(!d.ok)throw Error(d.error);historyData=d;document.getElementById('historyErrorNotice').style.display='none';renderHistory()}catch(e){document.getElementById('historyErrorNotice').style.display='flex';document.getElementById('historyErrorMsg').textContent=e.message||'โหลดประวัติไม่สำเร็จ'}}
 function renderHistory(){renderGlucoseChart(historyData.glucose||[]);renderCarbChart(historyData.carbDaily||[],historyData.patient?.target||dailyTarget);renderInsulinHistory(historyData.insulin||[])}
 function renderGlucoseChart(data){const c=document.getElementById('glucoseChart');if(!data.length){c.innerHTML='<p class="muted">ยังไม่มีข้อมูล</p>';return}const w=320,h=150,pL=30,pR=10,pT=10,pB=10;const values=data.map(d=>Number(d.value));const minV=Math.min(60,...values)-10,maxV=Math.max(220,...values)+10;const x=i=>pL+(data.length>1?(i/(data.length-1))*(w-pL-pR):(w-pL-pR)/2);const y=v=>pT+(1-(v-minV)/(maxV-minV))*(h-pT-pB);const pts=data.map((d,i)=>`${x(i)},${y(d.value)}`).join(' ');c.innerHTML=`<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto"><line x1="${pL}" y1="${y(70)}" x2="${w-pR}" y2="${y(70)}" style="stroke:var(--border)" stroke-dasharray="3,3"/><line x1="${pL}" y1="${y(180)}" x2="${w-pR}" y2="${y(180)}" style="stroke:var(--border)" stroke-dasharray="3,3"/><polyline points="${pts}" fill="none" style="stroke:var(--brand)" stroke-width="1.5"/>${data.map((d,i)=>`<circle cx="${x(i)}" cy="${y(d.value)}" r="3" style="fill:${d.level==='low'||d.level==='very-high'?'var(--over)':d.level==='high'?'var(--warn)':'var(--good)'}"/>`).join('')}</svg>`}
