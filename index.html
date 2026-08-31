@@ -286,7 +286,7 @@ function renderInsurancePlan(){
   const p=settings.patient||{};
   const status=document.getElementById('planStatusPill');
   const planExists=!!(c.regimen||c.basalEnabled||c.selectedBolusMethod||c.bolusMethod1Code||c.correctionEnabled);
-  const planActive=(c.status||'DRAFT')==='PUBLISHED' && planExists;
+  const planActive=(c.status||'')==='ACTIVE' && planExists;
   status.className='status-pill '+(planActive?'active':planExists?'pending':'off');
   status.textContent=planActive?'🟢 ใช้งานอยู่':planExists?'🟡 รอตรวจสอบ':'⚪ ยังไม่มีแผน';
   document.getElementById('planRegimen').textContent=c.regimen||'ยังไม่ได้กำหนด';
@@ -335,7 +335,7 @@ function renderInsurancePlan(){
     settings.weightPendingReview?'⚠️ ระบบได้รับน้ำหนักแล้ว กรุณารอทีมแพทย์ที่ดูแลยืนยันรับข้อมูล':settings.weightMissing?'ต้องกรอกน้ำหนักตัวของคุณตามแผน Basal':'แผนอินซูลินจากทีมแพทย์ผู้ดูแลถูกล็อกตามสิทธิ์ของคุณ';
   document.getElementById('insulinPlanNotice').classList.toggle('warn',!!settings.weightMissing || !!settings.weightPendingReview);
 }
-async function calcInsulin(){const err=document.getElementById('insulinError');if(!settings || !settings.canCalculate){err.textContent='ยังไม่มีแผนอินซูลินที่แพทย์อนุมัติและเผยแพร่ให้ใช้งาน';err.style.display='block';return}err.style.display='none';const meal=document.getElementById('insulinMeal').value,current=Number(document.getElementById('currentBgInput').value)||0,carbs=Number(document.getElementById('mealCarbInput').value)||0;if(current<=0&&carbs<=0){err.textContent='กรอกน้ำตาลปัจจุบันหรือคาร์บมื้อนี้อย่างน้อย 1 ค่า';err.style.display='block';return}try{const d=await api({type:'insulin',idToken:myIdToken,displayName:profile.displayName,meal,current,carbs,clientEntryId:crypto.randomUUID()});if(!d.ok){err.textContent=d.error||'คำนวณไม่สำเร็จ';err.style.display='block';return}const b=document.getElementById('insulinResult');b.style.display='block';b.className='result-box neutral';b.innerHTML=`<div class="result-title">ผลตามแผนการรักษา</div><div class="result-total">${d.totalDose} หน่วย</div><div class="result-breakdown">ส่วนมื้ออาหาร ${Number(d.mealDose).toFixed(1)} + ส่วนแก้ไข ${Number(d.correctionDose).toFixed(1)}</div><div class="result-footnote">Basal ที่แพทย์กำหนด ${d.basalPrescribed||'ยังไม่ได้กำหนด'}</div><div class="result-footnote">ระบบคำนวณตามแผนที่แพทย์กำหนด ไม่ได้เป็นผู้กำหนดแผนการรักษา</div>`}catch(e){err.textContent='เชื่อมต่อ backend ไม่สำเร็จ';err.style.display='block'}}
+async function calcInsulin(){const err=document.getElementById('insulinError');if(!myIdToken){err.textContent='ยังไม่สามารถยืนยันตัวตนได้';err.style.display='block';return}err.style.display='none';const meal=document.getElementById('insulinMeal').value,current=Number(document.getElementById('currentBgInput').value)||0,carbs=Number(document.getElementById('mealCarbInput').value)||0;if(current<=0&&carbs<=0){err.textContent='กรอกน้ำตาลปัจจุบันหรือคาร์บมื้อนี้อย่างน้อย 1 ค่า';err.style.display='block';return}try{const d=await api({type:'insulin',idToken:myIdToken,displayName:profile.displayName,meal,current,carbs,clientEntryId:crypto.randomUUID()});if(!d.ok){err.textContent=d.error||'คำนวณไม่สำเร็จ';err.style.display='block';return}const b=document.getElementById('insulinResult');b.style.display='block';b.className='result-box neutral';b.innerHTML=`<div class="result-title">ผลตามแผนการรักษา</div><div class="result-total">${d.totalDose} หน่วย</div><div class="result-breakdown">ส่วนมื้ออาหาร ${Number(d.mealDose).toFixed(1)} + ส่วนแก้ไข ${Number(d.correctionDose).toFixed(1)}</div><div class="result-footnote">Basal ที่แพทย์กำหนด ${d.basalPrescribed||'ยังไม่ได้กำหนด'}</div><div class="result-footnote">ระบบคำนวณตามแผนที่แพทย์กำหนด ไม่ได้เป็นผู้กำหนดแผนการรักษา</div>`}catch(e){err.textContent='เชื่อมต่อ backend ไม่สำเร็จ';err.style.display='block'}}
 function openWeightModal(){document.getElementById('weightModal').classList.add('show');setTimeout(()=>document.getElementById('weightInput').focus(),50)}function closeWeightModal(){document.getElementById('weightModal').classList.remove('show')}
 async function saveMyWeight(){const v=Number(document.getElementById('weightInput').value);const e=document.getElementById('weightError');if(!v||v<=0||v>500){e.textContent='กรอกน้ำหนักที่ถูกต้อง';e.style.display='block';return}e.style.display='none';try{const d=await api({type:'updateMyWeight',idToken:myIdToken,weightKg:v,source:'PATIENT'});if(!d.ok)throw Error(d.error);closeWeightModal();document.getElementById('weightPendingStrip').style.display='block';await fetchMySettings()}catch(err){e.textContent=err.message||'บันทึกไม่สำเร็จ';e.style.display='block'}}
 /* =========================================================
@@ -458,28 +458,43 @@ async function analyzeGlucose() {
 
       resultClass =
         'danger';
+
+    } else if (level === 'random-reference') {
+
+      title =
+        'ผลแบบฉุกเฉิน / สุ่มตรวจ';
+
+      icon =
+        'ℹ️';
+
+      resultClass =
+        'neutral';
     }
 
     /* ใช้ settings ตัวจริงของระบบ */
     const clinical =
-      settings || {};
+      settings?.clinical || null;
 
     const low =
-      Number(
-        clinical.lowThreshold
-      ) || 70;
+      clinical && Number.isFinite(Number(clinical.lowThreshold))
+        ? Number(clinical.lowThreshold)
+        : null;
 
     const veryHigh =
-      Number(
-        clinical.veryHighThreshold
-      ) || 250;
+      clinical && Number.isFinite(Number(clinical.veryHighThreshold))
+        ? Number(clinical.veryHighThreshold)
+        : null;
 
     let upper = null;
 
-    if (timing === 'fasting') {
-      upper = Number(clinical.fastingUpper) || 130;
-    } else if (timing === 'postmeal') {
-      upper = Number(clinical.postmealUpper) || 180;
+    if (clinical && timing === 'fasting') {
+      upper = Number.isFinite(Number(clinical.fastingUpper))
+        ? Number(clinical.fastingUpper)
+        : null;
+    } else if (clinical && timing === 'postmeal') {
+      upper = Number.isFinite(Number(clinical.postmealUpper))
+        ? Number(clinical.postmealUpper)
+        : null;
     }
 
     /* สร้างคำอธิบาย */
@@ -490,12 +505,9 @@ async function analyzeGlucose() {
         level,
         {
           lowThreshold: low,
-          fastingUpper:
-            clinical.fastingUpper,
-          postmealUpper:
-            clinical.postmealUpper,
-          veryHighThreshold:
-            veryHigh
+          fastingUpper: clinical?.fastingUpper,
+          postmealUpper: clinical?.postmealUpper,
+          veryHighThreshold: veryHigh
         }
       );
 
@@ -657,24 +669,24 @@ function buildGlucoseExplanation(
   settings
 ) {
 
-  const low =
-    Number(
-      settings?.lowThreshold
-    ) || 70;
+  const lowValue = Number(settings?.lowThreshold);
+  const low = Number.isFinite(lowValue) ? lowValue : null;
 
   let upper = null;
 
   if (timing === 'fasting') {
-    upper = Number(settings?.fastingUpper) || 130;
+    const v = Number(settings?.fastingUpper);
+    upper = Number.isFinite(v) ? v : null;
   } else if (timing === 'postmeal') {
-    upper = Number(settings?.postmealUpper) || 180;
+    const v = Number(settings?.postmealUpper);
+    upper = Number.isFinite(v) ? v : null;
   }
 
   if (level === 'low') {
 
     return `
       ค่าของคุณต่ำกว่าเกณฑ์น้ำตาลต่ำ
-      ${low} mg/dL
+      ${low ?? 'ไม่ระบุ'} mg/dL
     `;
 
   }
@@ -691,7 +703,7 @@ function buildGlucoseExplanation(
     return `
       ค่าของคุณสูงกว่าเกณฑ์ของช่วง
       ${getTimingLabel(timing)}
-      ซึ่งกำหนดไว้ที่ ${upper} mg/dL
+      ซึ่งกำหนดไว้ที่ ${upper ?? 'ไม่ระบุ'} mg/dL
     `;
   }
 
