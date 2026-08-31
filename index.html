@@ -117,7 +117,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'
     <div class="card"><p class="section-title">แนวโน้มน้ำตาลในเลือด</p><p class="sub">เลือกช่วงเวลาได้ 14–90 วัน</p><select id="historyDays" onchange="loadHistory()"><option value="14">14 วัน</option><option value="30">30 วัน</option><option value="60">60 วัน</option><option value="90">90 วัน</option></select><div id="glucoseChart" style="margin-top:12px"></div></div>
     <div class="card"><p class="section-title">คาร์บรวมรายวัน</p><div id="carbChart"></div><!-- แสดงวันที่และปริมาณคาร์บแบบอ่านง่าย --><div id="carbHistoryList"style="margin-top:14px;display:grid;gap:8px;"></div></div>
     <div class="card"><p class="section-title">ประวัติอินซูลิน</p><ul class="history-entry-list" id="historyInsulinList"></ul></div>
-    <button class="btn-primary" id="pdfBtn" onclick="requestPdfReport()">สร้างรายงาน PDF ของฉัน</button><p id="pdfStatus" class="result-footnote" style="text-align:center"></p><button class="btn-add" style="margin-top:8px" onclick="openInExternalBrowser()">เปิดในเบราว์เซอร์</button><div id="printReport" style="position:absolute;left:-9999px;top:0;width:700px;background:#fff;padding:24px;color:#111"></div>
+    <button class="btn-primary" id="pdfBtn" onclick="requestPdfReport()">สร้างรายงาน PDF ของฉัน</button><p id="pdfStatus" class="result-footnote" style="text-align:center"></p><div id="printReport" style="position:absolute;left:-9999px;top:0;width:700px;background:#fff;padding:24px;color:#111"></div>
   </div>
 </div>
 
