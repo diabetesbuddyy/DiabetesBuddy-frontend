@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>สุขภาพเบาหวาน</title>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600&family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -117,7 +116,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'
     <div id="historyErrorNotice" class="notice warn" style="display:none"><span id="historyErrorMsg"></span></div>
     <div class="card"><p class="section-title">แนวโน้มน้ำตาลในเลือด</p><p class="sub">เลือกช่วงเวลาได้ 14–90 วัน</p><select id="historyDays" onchange="loadHistory()"><option value="14">14 วัน</option><option value="30">30 วัน</option><option value="60">60 วัน</option><option value="90">90 วัน</option></select><div id="glucoseChart" style="margin-top:12px"></div></div>
     <div class="card"><p class="section-title">คาร์บรวมรายวัน</p><div id="carbChart"></div></div>
-    <div class="card"><p class="section-title">ประวัติอินซูลิน</p><ul class="history-entry-list" id="insulinHistoryList"></ul></div>
+    <div class="card"><p class="section-title">ประวัติอินซูลิน</p><ul class="history-entry-list" id="historyInsulinList"></ul></div>
     <button class="btn-primary" id="pdfBtn" onclick="requestPdfReport()">สร้างรายงาน PDF ของฉัน</button><p id="pdfStatus" class="result-footnote" style="text-align:center"></p><button class="btn-add" style="margin-top:8px" onclick="openInExternalBrowser()">เปิดในเบราว์เซอร์</button><div id="printReport" style="position:absolute;left:-9999px;top:0;width:700px;background:#fff;padding:24px;color:#111"></div>
   </div>
 </div>
@@ -150,7 +149,7 @@ const PROJECT_DATA_USE_END='24 พฤศจิกายน 2569';
 const PROJECT_END_DATE='24 กุมภาพันธ์ 2570';
 const GAS_WEB_APP_URL='https://script.google.com/macros/s/AKfycbz7K08A_m4RGmpclxW8jOqIqbLbUrSiftt4hzyxr5dtvhKjIAyL-vx74AgO_UP-zEk4/exec';
 const FOOD_DB=[{name:'ข้าวสวย (1 ทัพพี)',carbs:20},{name:'ข้าวเหนียว (1 ก้อนเล็ก)',carbs:23},{name:'ขนมปังแผ่น (1 แผ่น)',carbs:13},{name:'ก๋วยเตี๋ยว (1 ชาม)',carbs:45},{name:'กล้วยน้ำว้า (1 ผล)',carbs:25},{name:'ส้ม (1 ผลกลาง)',carbs:15},{name:'นมจืด (1 แก้ว)',carbs:12},{name:'ผัดไทย (1 จาน)',carbs:55}];
-let profile={userId:null,displayName:'ผู้ป่วย'};let myIdToken=null;let todayLog=[];let carbLogDate='';const CARB_STORAGE_PREFIX='diabetesBuddy.carbLog.v2';const CARB_MODE_STORAGE_PREFIX='diabetesBuddy.carbMode.v1';let carbSyncMode='auto';let retryTimer=null;let cancelTargetIndex=null;let selectedMeal='เช้า';lectedTiming='fasting';let dailyTarget=200;let historyData=null;let historyLoaded=false;
+let profile={userId:null,displayName:'ผู้ป่วย'};let myIdToken=null;let settings=null;let todayLog=[];let carbLogDate='';const CARB_STORAGE_PREFIX='diabetesBuddy.carbLog.v2';const CARB_MODE_STORAGE_PREFIX='diabetesBuddy.carbMode.v1';let carbSyncMode='auto';let retryTimer=null;let cancelTargetIndex=null;let selectedMeal='เช้า';let selectedTiming='fasting';let dailyTarget=200;let historyData=null;let historyLoaded=false;
 const THAI_DAYS=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];const THAI_MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 function renderThaiDate(){const d=new Date();document.getElementById('headerDate').textContent=`วัน${THAI_DAYS[d.getDay()]}ที่ ${d.getDate()} ${THAI_MONTHS[d.getMonth()]}`}
 function getBangkokDateKey(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}
@@ -165,70 +164,34 @@ function loadTodayCarbLog(){carbLogDate=getBangkokDateKey();clearStaleCarbStorag
 function saveTodayCarbLog(){try{if(!getCarbStorageKey())return;localStorage.setItem(getCarbStorageKey(),JSON.stringify({date:carbLogDate,entries:todayLog,savedAt:new Date().toISOString()}))}catch(e){}}
 function cleanupCarbLogIfNewDay(){const now=getBangkokDateKey();if(carbLogDate&&now!==carbLogDate){todayLog=[];carbLogDate=now;clearStaleCarbStorage();saveTodayCarbLog();renderLog();updateRing();updateCarbModeUI()}}
 async function initLiff() {
-
   try {
-
-    await liff.init({
-      liffId: LIFF_ID
-    });
+    await liff.init({ liffId: LIFF_ID });
 
     if (!liff.isLoggedIn()) {
       liff.login();
       return;
     }
 
-    const consentOK =
-  await checkConsentAndContinue();
+    const p = await liff.getProfile();
+    profile.userId = p.userId;
+    profile.displayName = p.displayName;
+    myIdToken = liff.getIDToken?.();
 
-if (
-  consentOK &&
-  getLiffMode() === 'report'
-) {
-  openReportMode();
-}
-
-    const p =
-      await liff.getProfile();
-
-    profile.userId =
-      p.userId;
-
-    profile.displayName =
-      p.displayName;
-
-    myIdToken =
-      liff.getIDToken?.();
-
-    document.getElementById(
-      'patientName'
-    ).textContent =
-      p.displayName;
-
-    document.getElementById(
-      'demoBanner'
-    ).style.display =
-      'none';
+    document.getElementById('patientName').textContent = p.displayName;
+    document.getElementById('demoBanner').style.display = 'none';
 
     loadTodayCarbLog();
 
-    /* ตรวจสอบ Consent ก่อน */
-    await checkConsentAndContinue();
+    const consentOK = await checkConsentAndContinue();
 
-if (getLiffMode() === 'report') {
-    openReportMode();
-}
-
+    if (consentOK && getLiffMode() === 'report') {
+      openReportMode();
+    }
   } catch (e) {
-
-    document.getElementById(
-      'demoBanner'
-    ).textContent =
+    console.error('LIFF initialization failed:', e);
+    document.getElementById('demoBanner').textContent =
       'โหมดทดสอบ/เชื่อมต่อ LIFF ไม่สำเร็จ — ยังไม่ใช้ข้อมูลผู้ป่วยจริง';
-
-    document.getElementById(
-      'patientName'
-    ).textContent =
-      profile.displayName;
+    document.getElementById('patientName').textContent = profile.displayName;
   }
 }
 
@@ -298,7 +261,7 @@ async function checkConsentAndContinue() {
 function showConsentModal(){document.getElementById('consentModal').classList.add('show');document.body.style.overflow='hidden'}
 function hideConsentModal(){document.getElementById('consentModal').classList.remove('show');document.body.style.overflow=''}
 function declineConsent(){try{if(window.liff&&liff.isInClient&&liff.isInClient()){liff.closeWindow();return}}catch(e){}alert('คุณยังไม่ได้ให้ความยินยอม จึงยังไม่สามารถใช้งานฟังก์ชันที่เก็บข้อมูลสุขภาพของ Diabetes Buddy ได้')}
-async function acceptConsent(){const cb=document.getElementById('consentCheckbox');const btn=document.getElementById('consentAcceptBtn');if(!cb.checked)return;btn.disabled=true;btn.textContent='กำลังบันทึก…';try{const d=await api({type:'recordConsent',idToken:myIdToken,consent:true});if(!d.ok)throw Error(d.error||'บันทึกความยินยอมไม่สำเร็จ');hideConsentModal();await fetchMySettings();}catch(e){alert(e.message||'ไม่สามารถบันทึกความยินยอมได้');btn.disabled=false;btn.textContent='ยืนยันการยินยอม'}}
+async function acceptConsent(){const cb=document.getElementById('consentCheckbox');const btn=document.getElementById('consentAcceptBtn');if(!cb.checked)return;btn.disabled=true;btn.textContent='กำลังบันทึก…';try{const d=await api({type:'recordConsent',idToken:myIdToken,consent:true});if(!d.ok)throw Error(d.error||'บันทึกความยินยอมไม่สำเร็จ');hideConsentModal();await fetchMySettings();if(getLiffMode()==='report'){openReportMode();}}catch(e){alert(e.message||'ไม่สามารถบันทึกความยินยอมได้');btn.disabled=false;btn.textContent='ยืนยันการยินยอม'}}
 document.addEventListener('DOMContentLoaded',()=>{const cb=document.getElementById('consentCheckbox');const btn=document.getElementById('consentAcceptBtn');if(cb&&btn)cb.addEventListener('change',()=>{btn.disabled=!cb.checked})});
 async function fetchMySettings(){if(!myIdToken)return;try{const d=await api({type:'mySettings',idToken:myIdToken});if(!d.ok)throw Error(d.error||'โหลดแผนไม่สำเร็จ');settings=d;dailyTarget=Number(d.carbTarget)||200;updateRing();renderInsurancePlan();if(d.weightMissing && !d.weightPendingReview)openWeightModal();}catch(e){document.getElementById('insulinPlanNotice').textContent='ไม่สามารถโหลดแผนการรักษาได้: '+e.message}}
 function switchTab(id,btn){document.querySelectorAll('.tab-panel').forEach(p=>p.hidden=true);document.getElementById('panel-'+id).hidden=false;document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');if(id==='history'&&!historyLoaded){historyLoaded=true;loadHistory()}}
@@ -316,7 +279,7 @@ function openCancelCarbModal(i){cleanupCarbLogIfNewDay();const e=todayLog[i];if(
 function closeCancelCarbModal(){document.getElementById('cancelCarbModal').classList.remove('show');document.getElementById('cancelCarbModal').setAttribute('aria-hidden','true');cancelTargetIndex=null}
 async function confirmCancelCarb(){const reason=document.getElementById('cancelCarbReason').value.trim(),err=document.getElementById('cancelCarbError');if(reason.length<3){err.textContent='กรุณาระบุรายละเอียดอย่างน้อย 3 ตัวอักษร';err.style.display='block';return}if(cancelTargetIndex===null)return;const e=todayLog[cancelTargetIndex];if(!e){closeCancelCarbModal();return}const btn=document.getElementById('confirmCancelCarbBtn');btn.disabled=true;btn.textContent='กำลังบันทึก…';try{const d=await api({type:'cancelCarbEntry',idToken:myIdToken,clientEntryId:e.clientEntryId,reason});if(!d.ok)throw Error(d.error||'ยกเลิกรายการไม่สำเร็จ');todayLog.splice(cancelTargetIndex,1);saveTodayCarbLog();closeCancelCarbModal();renderLog();updateRing();updateCarbModeUI()}catch(x){err.textContent=x.message||'ไม่สามารถยกเลิกรายการได้';err.style.display='block'}finally{btn.disabled=false;btn.textContent='ยืนยันการยกเลิก'}}
 function renderLog(){cleanupCarbLogIfNewDay();const list=document.getElementById('logList');list.innerHTML='';const active=todayLog.filter(e=>e.syncStatus!=='VOID');if(!active.length)list.innerHTML='<li class="muted">ยังไม่มีรายการวันนี้</li>';else active.forEach(e=>{const i=todayLog.indexOf(e),li=document.createElement('li');li.className='log-item';const st=e.syncStatus==='SYNCED'?'<span class="log-status synced">✓ ส่งแล้ว</span>':e.syncStatus==='SYNCING'?'<span class="log-status pending">กำลังส่ง…</span>':'<span class="log-status pending">รอส่ง</span>';const action=e.syncStatus==='SYNCED'?`<button class="log-del" aria-label="ยกเลิก ${e.food}" title="ขอยกเลิก/แก้ไขรายการ" onclick="openCancelCarbModal(${i})">ยกเลิก</button>`:`<button class="log-del" aria-label="ลบ ${e.food}" title="ลบรายการที่ยังไม่ส่ง" onclick="openCancelCarbModal(${i})">×</button>`;li.innerHTML=`<span class="log-meal">${e.meal}</span><span class="log-food">${e.food}</span><span class="log-carbs">${e.carbs} ก.</span>${st}${action}`;list.appendChild(li)});const p=active.filter(e=>e.syncStatus!=='SYNCED').length,b=document.getElementById('syncBanner');b.style.display=p&&carbSyncMode==='auto'?'flex':'none';if(p&&carbSyncMode==='auto')document.getElementById('syncText').textContent=`มี ${p} รายการที่ยังส่งไม่สำเร็จ ระบบจะลองส่งให้อัตโนมัติอีกครั้ง`;updateCarbModeUI()}
-function updateRing(){const total=totalCarbs();const pct=Math.min(1,total/dailyTarget);const ring=document.getElementById('ringProgress');ring.style.strokeDashoffset=339.3*(1-pct);ring.style.stroke=total>dailyTarget?'var(--over)':pct>.85?'var(--warn)':'var(--good)';document.getElementById('ringText').textContent=`${total}/${dailyTarget}`}
+
 function renderInsurancePlan(){
   if(!settings) return;
   const c=settings.clinical||{};
@@ -511,21 +474,12 @@ async function analyzeGlucose() {
         clinical.veryHighThreshold
       ) || 250;
 
-    let upper;
+    let upper = null;
 
     if (timing === 'fasting') {
-
-      upper =
-        Number(
-          clinical.fastingUpper
-        ) || 130;
-
-    } else {
-
-      upper =
-        Number(
-          clinical.postmealUpper
-        ) || 180;
+      upper = Number(clinical.fastingUpper) || 130;
+    } else if (timing === 'postmeal') {
+      upper = Number(clinical.postmealUpper) || 180;
     }
 
     /* สร้างคำอธิบาย */
@@ -602,7 +556,7 @@ async function analyzeGlucose() {
           </span>
 
           <strong>
-            ${upper} mg/dL
+            ${upper === null ? 'ไม่ใช้เกณฑ์ช่วงเวลา' : upper + ' mg/dL'}
           </strong>
 
         </div>
@@ -708,21 +662,12 @@ function buildGlucoseExplanation(
       settings?.lowThreshold
     ) || 70;
 
-  let upper;
+  let upper = null;
 
   if (timing === 'fasting') {
-
-    upper =
-      Number(
-        settings?.fastingUpper
-      ) || 130;
-
-  } else {
-
-    upper =
-      Number(
-        settings?.postmealUpper
-      ) || 180;
+    upper = Number(settings?.fastingUpper) || 130;
+  } else if (timing === 'postmeal') {
+    upper = Number(settings?.postmealUpper) || 180;
   }
 
   if (level === 'low') {
@@ -743,13 +688,18 @@ function buildGlucoseExplanation(
   }
 
   if (level === 'high') {
-
     return `
       ค่าของคุณสูงกว่าเกณฑ์ของช่วง
       ${getTimingLabel(timing)}
       ซึ่งกำหนดไว้ที่ ${upper} mg/dL
     `;
+  }
 
+  if (timing === 'emergency') {
+    return `
+      การตรวจแบบฉุกเฉิน / สุ่มตรวจไม่ใช้เกณฑ์หลังอาหารโดยอัตโนมัติ
+      ระบบจะแสดงผลตามกฎที่ Backend กำหนดสำหรับการตรวจประเภทนี้
+    `;
   }
 
   return `
@@ -852,57 +802,6 @@ function buildHypoglycemiaAdvice(value) {
       </div>
 
     </div>
-  `;
-}
-  const timingLabel =
-    getTimingLabel(timing);
-
-  /* -------------------------
-     น้ำตาลต่ำ
-     ------------------------- */
-  if (level === 'low') {
-
-    return `
-      ค่าของคุณต่ำกว่าเกณฑ์น้ำตาลต่ำ
-      ${low} mg/dL
-      อยู่ ${Math.abs(value - low).toFixed(0)} mg/dL
-    `;
-  }
-
-  /* -------------------------
-     น้ำตาลสูงมาก
-     ------------------------- */
-  if (level === 'very-high') {
-
-    return `
-      ค่าของคุณอยู่ที่ ${value} mg/dL
-      ซึ่งถึงหรือสูงกว่าเกณฑ์ที่ระบบกำหนดว่า
-      "สูงมาก" คือ ${Number(settings?.veryHighThreshold) || 250} mg/dL
-    `;
-  }
-
-  /* -------------------------
-     น้ำตาลสูง
-     ------------------------- */
-  if (level === 'high') {
-
-    return `
-      ตรวจในช่วง "${timingLabel}"
-      และค่า ${value} mg/dL
-      สูงกว่าเกณฑ์ของช่วงนี้
-      ${upper} mg/dL
-      อยู่ ${Math.abs(value - upper).toFixed(0)} mg/dL
-    `;
-  }
-
-  /* -------------------------
-     ปกติ
-     ------------------------- */
-  return `
-    ตรวจในช่วง "${timingLabel}"
-    และค่า ${value} mg/dL
-    ยังไม่เกินเกณฑ์ของช่วงนี้
-    ${upper} mg/dL
   `;
 }
 async function loadHistory(){if(!myIdToken)return;const days=Number(document.getElementById('historyDays').value)||14;try{const d=await api({type:'myHistory',idToken:myIdToken,days});if(!d.ok)throw Error(d.error);historyData=d;document.getElementById('historyErrorNotice').style.display='none';renderHistory()}catch(e){document.getElementById('historyErrorNotice').style.display='flex';document.getElementById('historyErrorMsg').textContent=e.message||'โหลดประวัติไม่สำเร็จ'}}
@@ -1279,18 +1178,12 @@ function renderGlucoseChart(data) {
   `;
 }
 function renderCarbChart(data,target){const c=document.getElementById('carbChart');if(!data.length){c.innerHTML='<p class="muted">ยังไม่มีข้อมูล</p>';return}const w=320,h=150,pL=8,pR=8,pT=10,pB=22,maxV=Math.max(target,...data.map(d=>d.totalCarbs))*1.15,g=(w-pL-pR)/data.length,bW=g*.6;const bars=data.map((d,i)=>{const bh=(d.totalCarbs/maxV)*(h-pT-pB),bx=pL+i*g+(g-bW)/2,by=h-pB-bh;return `<rect x="${bx}" y="${by}" width="${bW}" height="${Math.max(bh,1)}" rx="2" style="fill:${d.totalCarbs>target?'var(--over)':'var(--good)'}"/>`}).join('');const ty=h-pB-(target/maxV)*(h-pT-pB);c.innerHTML=`<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto"><line x1="${pL}" y1="${ty}" x2="${w-pR}" y2="${ty}" style="stroke:var(--brand)" stroke-dasharray="3,3"/>${bars}</svg>`}
-function renderInsulinHistory(data){const c=document.getElementById('insulinHistoryList');c.innerHTML=data.length?data.slice().reverse().map(d=>`<li class="log-item"><span class="log-food">${new Date(d.time).toLocaleString('th-TH')}</span><span class="log-carbs">${d.totalDose} หน่วย</span></li>`).join(''):'<li class="muted">ยังไม่มีประวัติอินซูลิน</li>'}
-async function requestPdfReport(){const btn=document.getElementById('pdfBtn'),status=document.getElementById('pdfStatus');btn.disabled=true;status.textContent='กำลังสร้างรายงาน…';try{const d=await api({type:'requestPdfReport',idToken:myIdToken,displayName:profile.displayName,days:Number(document.getElementById('historyDays').value)||14});if(!d.ok)throw Error(d.error);status.innerHTML=d.url?`สร้างรายงานแล้ว <a href="${d.url}" target="_blank" rel="noopener">เปิด PDF</a>`:'สร้างรายงานแล้ว';if(d.pushed)status.textContent='ส่งลิงก์รายงานเข้า LINE ของคุณแล้ว'}catch(e){status.textContent=e.message||'สร้าง PDF ไม่สำเร็จ'}finally{btn.disabled=false}}
-function openInExternalBrowser(){if(window.liff?.isInClient?.())liff.openWindow({url:window.location.href,external:true});else window.open(window.location.href,'_blank')}
-/* =========================================================
-   ตรวจสอบว่าผู้ใช้เข้ามาจาก Rich Menu ด้วย mode อะไร
-   ========================================================= */
-function getLiffMode() {
-  const params = new URLSearchParams(
-    window.location.search
-  );
-
-  return params.get('mode') || '';
+function renderInsulinHistory(data){
+  const html=data.length?data.slice().reverse().map(d=>`<li class="log-item"><span class="log-food">${new Date(d.time).toLocaleString('th-TH')}</span><span class="log-carbs">${d.totalDose} หน่วย</span></li>`).join(''):'<li class="muted">ยังไม่มีประวัติอินซูลิน</li>';
+  const historyList=document.getElementById('historyInsulinList');
+  if(historyList) historyList.innerHTML=html;
+  const insulinList=document.getElementById('insulinHistoryList');
+  if(insulinList) insulinList.innerHTML=html;
 }
 
 /* =========================================================
