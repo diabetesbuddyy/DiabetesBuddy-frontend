@@ -115,7 +115,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'
   <div id="panel-history" class="tab-panel" hidden>
     <div id="historyErrorNotice" class="notice warn" style="display:none"><span id="historyErrorMsg"></span></div>
     <div class="card"><p class="section-title">แนวโน้มน้ำตาลในเลือด</p><p class="sub">เลือกช่วงเวลาได้ 14–90 วัน</p><select id="historyDays" onchange="loadHistory()"><option value="14">14 วัน</option><option value="30">30 วัน</option><option value="60">60 วัน</option><option value="90">90 วัน</option></select><div id="glucoseChart" style="margin-top:12px"></div></div>
-    <div class="card"><p class="section-title">คาร์บรวมรายวัน</p><div id="carbChart"></div></div>
+    <div class="card"><p class="section-title">คาร์บรวมรายวัน</p><div id="carbChart"></div><!-- แสดงวันที่และปริมาณคาร์บแบบอ่านง่าย --><div id="carbHistoryList"style="margin-top:14px;display:grid;gap:8px;"></div></div>
     <div class="card"><p class="section-title">ประวัติอินซูลิน</p><ul class="history-entry-list" id="historyInsulinList"></ul></div>
     <button class="btn-primary" id="pdfBtn" onclick="requestPdfReport()">สร้างรายงาน PDF ของฉัน</button><p id="pdfStatus" class="result-footnote" style="text-align:center"></p><button class="btn-add" style="margin-top:8px" onclick="openInExternalBrowser()">เปิดในเบราว์เซอร์</button><div id="printReport" style="position:absolute;left:-9999px;top:0;width:700px;background:#fff;padding:24px;color:#111"></div>
   </div>
@@ -805,7 +805,145 @@ function buildHypoglycemiaAdvice(value) {
   `;
 }
 async function loadHistory(){if(!myIdToken)return;const days=Number(document.getElementById('historyDays').value)||14;try{const d=await api({type:'myHistory',idToken:myIdToken,days});if(!d.ok)throw Error(d.error);historyData=d;document.getElementById('historyErrorNotice').style.display='none';renderHistory()}catch(e){document.getElementById('historyErrorNotice').style.display='flex';document.getElementById('historyErrorMsg').textContent=e.message||'โหลดประวัติไม่สำเร็จ'}}
-function renderHistory(){renderGlucoseChart(historyData.glucose||[]);renderCarbChart(historyData.carbDaily||[],historyData.patient?.target||dailyTarget);renderInsulinHistory(historyData.insulin||[])}
+function renderHistory(){
+  const glucose =
+    historyData?.glucose || [];
+
+  const carbDaily =
+    historyData?.carbDaily || [];
+
+  const insulin =
+    historyData?.insulin || [];
+
+  renderGlucoseChart(glucose);
+
+  renderCarbChart(
+    carbDaily,
+    historyData?.patient?.target || dailyTarget
+  );
+
+  renderCarbHistoryList(carbDaily);
+
+  renderInsulinHistory(insulin);
+}
+
+/* =========================================================
+   แสดงรายการคาร์บย้อนหลัง
+   แสดงทั้ง "วันที่" และ "กรัมคาร์บ"
+   ========================================================= */
+function renderCarbHistoryList(data) {
+
+  const container =
+    document.getElementById('carbHistoryList');
+
+  if (!container) {
+    return;
+  }
+
+  if (!Array.isArray(data) || !data.length) {
+
+    container.innerHTML =
+      '<div class="muted">ยังไม่มีข้อมูลคาร์บ</div>';
+
+    return;
+  }
+
+  const rows =
+    data
+      .slice()
+      .reverse()
+      .map(item => {
+
+        const total =
+          Number(item.totalCarbs) || 0;
+
+        let dateText =
+          item.date || 'ไม่ระบุวันที่';
+
+        const parsedDate =
+          new Date(item.date);
+
+        if (!isNaN(parsedDate.getTime())) {
+
+          dateText =
+            parsedDate.toLocaleDateString(
+              'th-TH',
+              {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+              }
+            );
+        }
+
+        return `
+          <div
+            style="
+              display:flex;
+              align-items:center;
+              justify-content:space-between;
+              gap:12px;
+              padding:11px 12px;
+              border:1px solid var(--border);
+              border-radius:12px;
+              background:var(--surface);
+            "
+          >
+
+            <div>
+              <div
+                style="
+                  font-size:13px;
+                  color:var(--ink-soft);
+                "
+              >
+                วันที่
+              </div>
+
+              <div
+                style="
+                  font-weight:600;
+                  font-size:14px;
+                "
+              >
+                ${dateText}
+              </div>
+            </div>
+
+            <div
+              style="
+                text-align:right;
+              "
+            >
+              <div
+                style="
+                  font-size:13px;
+                  color:var(--ink-soft);
+                "
+              >
+                คาร์บ
+              </div>
+
+              <div
+                style="
+                  font-family:'Kanit',sans-serif;
+                  font-size:18px;
+                  font-weight:600;
+                  color:var(--brand);
+                "
+              >
+                ${total} กรัม
+              </div>
+            </div>
+
+          </div>
+        `;
+      })
+      .join('');
+
+  container.innerHTML = rows;
+}
+
 /* =========================================================
    สร้างกราฟน้ำตาล
    - แกน Y กำหนดตายตัว 0–300 mg/dL
